@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HR System - ONE UNITED STAINLESS</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -39,7 +39,7 @@
         .btn-primary { background: var(--primary); width: 100%; } .btn-green { background: var(--success); } .btn-red { background: var(--danger); } .btn-yellow { background: var(--warning); color: #fff; } .btn-grey { background: var(--gray); }
         .btn-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); box-shadow: none; } .btn-outline:hover { background: var(--danger); color: white; }
 
-        .app-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--light-gray); padding-bottom: 15px; margin-bottom: 20px; }
+        .app-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--light-gray); padding-bottom: 15px; margin-bottom: 20px; }
         
         .tabs-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .tab-btn { background: var(--light-gray); color: var(--gray); border-radius: 8px; margin: 0; padding: 10px 15px; box-shadow: none; flex-grow: 1; text-align: center;} 
@@ -60,18 +60,18 @@
         .timeline-item { border-left: 4px solid var(--primary); padding: 10px; margin-bottom: 10px; background: #f9fafb; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.4;}
         .flex-gap { display: flex; gap: 10px; align-items: center;} .text-center { text-align: center; } .mt-3 { margin-top: 1rem; }
         
+        /* สไตล์ปฏิทิน */
         .cal-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--primary); color: white; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 16px; flex-wrap: wrap;}
         .cal-header-bar button { background: rgba(255,255,255,0.2); margin: 0; padding: 5px 15px; font-size: 14px; box-shadow: none; flex-shrink: 0;}
         .cal-header-bar button:hover { background: rgba(255,255,255,0.3); }
         .cal-header-bar span { text-align: center; flex-grow: 1; }
-        
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .cal-head { text-align: center; font-size: 12px; font-weight: 600; color: var(--gray); padding-bottom: 5px; }
         .cal-day { border: 1px solid #e5e7eb; border-radius: 4px; min-height: 60px; padding: 2px; background: white; display: flex; flex-direction: column; overflow: hidden;}
         .cal-day.empty { background: transparent; border: none; }
         .cal-date { font-size: 12px; font-weight: bold; color: var(--dark); margin-bottom: 2px; text-align: center;}
-        
         .cal-tag { font-size: 9px; padding: 2px 1px; border-radius: 3px; color: white; text-align: center; margin-bottom: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; display: block; line-height: 1.2; }
+        
         .bg-green { background: var(--success); } .bg-orange { background: var(--warning); } .bg-red { background: var(--danger); } .bg-blue { background: var(--primary); } .bg-gray { background: #d1d5db; color: #374151; } .bg-purple { background: #8b5cf6; }
         .status-Pending { color: var(--warning); font-weight: bold; } .status-Approved { color: var(--success); font-weight: bold; } .status-Rejected { color: var(--danger); font-weight: bold; }
 
@@ -79,14 +79,43 @@
         .loader { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* ================= สไตล์นาฬิกา (ใหม่) ================= */
+        .digital-clock {
+            font-size: 46px;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center;
+            margin: 10px 0;
+            letter-spacing: 2px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e0e7ff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .header-clock {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+            background: var(--light-gray);
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 8px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
         @media (max-width: 600px) {
             body { padding: 10px; } .box { padding: 15px; }
             .app-header { flex-direction: column; gap: 10px; align-items: flex-start; }
-            .app-header button { width: 100%; margin-top: 5px; }
+            .app-header > div:last-child { width: 100%; display: flex; justify-content: space-between; align-items: center;}
+            .app-header button { margin: 0; }
             .flex-gap { flex-direction: column; align-items: stretch; gap: 5px;} .flex-gap > div { width: 100%; } .flex-gap button { width: 100%; margin-left: 0; }
             .filter-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; } .filter-row input, .filter-row button { width: 100%; margin: 0; }
             .cal-header-bar { flex-direction: column; gap: 10px;} .cal-header-bar span { order: -1; font-size: 16px;} .cal-header-bar button { width: 100%; } .cal-day { min-height: 55px; }
             h2 { font-size: 18px; } .card h3 { font-size: 24px; } .tab-btn { font-size: 13px; padding: 8px 5px;}
+            .digital-clock { font-size: 38px; }
         }
     </style>
 </head>
@@ -100,9 +129,7 @@
 
 <div class="container">
     <div class="box login-box" id="loginSec">
-        <!-- ใส่โลโก้และชื่อบริษัทตรงนี้ -->
         <div style="text-align: center; margin-bottom: 25px;">
-            <!-- นำลิงก์รูปโลโก้ของคุณมาใส่แทนที่ลิงก์ด้านล่างนี้ -->
             <img src="https://i.postimg.cc/d30QGh3G/skr-nch-xt-2026-06-21-133147.png/300x80/ffffff/4361ee?text=LOGO" id="companyLogo" alt="โลโก้บริษัท" style="max-height: 70px; max-width: 100%; margin-bottom: 10px;">
             <h2 style="color: var(--dark); font-size: 18px; margin: 0;">ONE UNITED STAINLESS CO., LTD</h2>
         </div>
@@ -114,14 +141,16 @@
         <p id="loginMsg" style="color:var(--danger); font-weight:500; margin-top:15px;"></p>
     </div>
 
-    <!-- ================= หน้าพนักงาน ================= -->
     <div class="box hidden" id="empSec">
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
                 <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span></h2>
             </div>
-            <button class="btn-outline" onclick="logout()">ออกจากระบบ</button>
+            <div style="text-align: right;">
+                <div id="headerClockEmp" class="header-clock">00:00:00</div>
+                <button class="btn-outline" onclick="logout()" style="padding: 6px 12px; font-size: 13px;">ออกจากระบบ</button>
+            </div>
         </div>
         
         <div class="tabs-container">
@@ -130,8 +159,9 @@
             <button class="tab-btn" id="btnEmpTabRequest" onclick="switchEmpTab('request')">📝 คำขอ/สถานะ</button>
         </div>
         
-        <!-- Tab ลงเวลา -->
         <div id="emp-tab-checkin">
+            <div class="digital-clock" id="mainClockEmp">00:00:00</div>
+
             <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                 <p style="margin:0; font-size: 14px;">📍 สถานที่: <b id="empLocName" style="color:var(--success);">กำลังโหลด...</b></p>
                 <p id="gpsStatus" style="margin:5px 0 0 0; font-weight:600; font-size: 14px; color:var(--warning);">กำลังค้นหาตำแหน่ง...</p>
@@ -149,12 +179,10 @@
                     <button id="btnIn" class="btn-green hidden" onclick="checkIn('เข้างาน')" style="flex: 1; padding: 14px; font-size: 15px;">▶️ เข้างาน</button>
                     <button id="btnOut" class="btn-red hidden" onclick="checkIn('ออกงาน')" style="flex: 1; padding: 14px; font-size: 15px;">⏹️ ออกงาน</button>
                 </div>
-                <!-- เอาปุ่ม "ลางาน" ตรงนี้ออกแล้ว -->
             </div>
             <p id="empMsg" class="text-center mt-3"></p>
         </div>
 
-        <!-- ปฏิทินประวัติเข้างาน -->
         <div id="emp-tab-history" class="hidden">
             <div id="myCalendarContainer"></div>
             <div class="mt-3" style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid #e5e7eb;">
@@ -170,7 +198,6 @@
             </div>
         </div>
 
-        <!-- Tab ส่งคำขอ และ ดูสถานะคำขอ -->
         <div id="emp-tab-request" class="hidden">
             <select id="reqType" onchange="toggleReqForm()">
                 <option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option><option value="leave">ส่งคำขอลาหยุด</option>
@@ -211,14 +238,16 @@
         </div>
     </div>
 
-    <!-- ================= หน้า HR ================= -->
     <div class="box hidden" id="hrSec">
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
                 <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span></h2>
             </div>
-            <button class="btn-outline" onclick="logout()">ออกจากระบบ</button>
+            <div style="text-align: right;">
+                <div id="headerClockAdmin" class="header-clock">00:00:00</div>
+                <button class="btn-outline" onclick="logout()" style="padding: 6px 12px; font-size: 13px;">ออกจากระบบ</button>
+            </div>
         </div>
         
         <div class="tabs-container">
@@ -230,7 +259,6 @@
             <button class="tab-btn" id="tabBtnSettings" onclick="switchTab('settings')">ตั้งค่า</button>
         </div>
         
-        <!-- Tab Dashboard -->
         <div id="tab-dashboard">
             <div class="grid-cards">
                 <div class="card"><h3 id="dashIn">0</h3><p>เข้างานวันนี้</p></div>
@@ -287,7 +315,10 @@
         <div id="tab-settings" class="hidden">
             <h3 style="margin-top:0; font-size: 16px;">⏰ เวลาเข้า-ออกงานบริษัท</h3>
             <div class="edit-box" style="margin-top:0;">
-                <div class="flex-gap"><div style="width:100%;"><label style="font-size:12px; font-weight:600;">เข้างาน:</label><input type="time" id="confStart"></div><div style="width:100%;"><label style="font-size:12px; font-weight:600;">เลิกงาน:</label><input type="time" id="confEnd"></div></div>
+                <div class="flex-gap">
+                    <div style="width:100%;"><label style="font-size:12px; font-weight:600;">เข้างาน:</label><input type="time" id="confStart" value="08:30" required></div>
+                    <div style="width:100%;"><label style="font-size:12px; font-weight:600;">เลิกงาน:</label><input type="time" id="confEnd" value="17:30" required></div>
+                </div>
                 <button class="btn-primary" onclick="saveConfig()" style="margin-top:10px;">💾 บันทึกเวลาทำงาน</button>
             </div>
             <hr style="margin:20px 0; border:1px solid #e5e7eb;">
@@ -299,11 +330,23 @@
             <hr style="margin:20px 0; border:1px solid #e5e7eb;">
             <h3 style="margin-top:0; font-size: 16px;">📍 ตั้งค่าจุดเช็คอิน</h3>
             <div class="edit-box" style="margin-top:0;">
+                <div class="filter-row">
+                    <input type="text" id="searchPlaceInput" placeholder="พิมพ์ชื่อสถานที่เพื่อค้นหาบนแผนที่...">
+                    <button class="btn-grey" onclick="searchLocation()" style="width: auto;">🔍 ค้นหา</button>
+                </div>
                 <div id="map-hr"></div>
-                <input type="text" id="setLocName" placeholder="ตั้งชื่อสถานที่" style="font-weight: 500;">
-                <div class="flex-gap"><input type="text" id="setLat" placeholder="ละติจูด" readonly><input type="text" id="setLon" placeholder="ลองจิจูด" readonly></div>
+                <p style="font-size:12px; color:var(--gray); text-align:center;">*คลิกหรือเลื่อนหมุดบนแผนที่ หรือกรอกพิกัดเอง</p>
+                <input type="hidden" id="editOldLocName">
+                <input type="text" id="setLocName" placeholder="ตั้งชื่อสถานที่ (เช่น สำนักงานใหญ่)" style="font-weight: 500;">
+                <div class="flex-gap">
+                    <input type="text" id="setLat" placeholder="ละติจูด" oninput="updateHrMapFromInput()">
+                    <input type="text" id="setLon" placeholder="ลองจิจูด" oninput="updateHrMapFromInput()">
+                </div>
                 <input type="number" id="setRad" placeholder="รัศมีอนุญาต (เมตร)" oninput="updateHrCircleRadius()">
-                <button class="btn-primary" id="btnSaveLoc" onclick="saveLocation()" style="margin-top:10px;">💾 บันทึกสถานที่</button>
+                <div class="flex-gap mt-3">
+                    <button class="btn-primary" id="btnSaveLoc" onclick="saveLocation()" style="flex:1;">💾 บันทึกสถานที่</button>
+                    <button class="btn-outline hidden" id="btnCancelLoc" onclick="cancelEditLoc()" style="flex:1;">ยกเลิก</button>
+                </div>
             </div>
             <div class="table-responsive mt-3"><table><thead><tr><th>ชื่อสถานที่</th><th>รัศมี (ม.)</th><th>จัดการ</th></tr></thead><tbody id="tb-locations"></tbody></table></div>
         </div>
@@ -322,6 +365,18 @@
     let currentLogs = [];
     let calDate = new Date(); let hrCalDate = new Date(); let hrAllLogs = [];
 
+    // ================= ระบบนาฬิกา Real-time =================
+    function updateClocks() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('th-TH', { hour12: false });
+        if(document.getElementById('headerClockEmp')) document.getElementById('headerClockEmp').innerText = timeStr;
+        if(document.getElementById('mainClockEmp')) document.getElementById('mainClockEmp').innerText = timeStr;
+        if(document.getElementById('headerClockAdmin')) document.getElementById('headerClockAdmin').innerText = timeStr;
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks(); // รันครั้งแรกทันที
+
+    // ================= โหลดข้อมูลรวดเดียวจบ (Mega-Fetch) =================
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
         let savedRole = localStorage.getItem('work_checkin_role');
@@ -336,10 +391,18 @@
                 document.getElementById('loadingOverlay').classList.add('hidden'); 
                 
                 if(d.status === 'success') {
+                    // แปลงรูปแบบเวลาให้ถูกต้องเพื่อใส่ใน Input
+                    function formatTimeValue(tStr) {
+                        if(!tStr) return "08:30";
+                        let p = tStr.toString().split(':');
+                        if(p.length >= 2) return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
+                        return "08:30";
+                    }
+
                     workConfig = d.config || { start: "08:30", end: "17:30" };
-                    document.getElementById('confStart').value = workConfig.start;
-                    document.getElementById('confEnd').value = workConfig.end;
-                    document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${workConfig.start})`);
+                    document.getElementById('confStart').value = formatTimeValue(workConfig.start);
+                    document.getElementById('confEnd').value = formatTimeValue(workConfig.end);
+                    document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${formatTimeValue(workConfig.start)})`);
                     allHolidays = d.holidays || [];
 
                     if(currentRole === 'employee') {
@@ -429,12 +492,12 @@
             targetLocName = insideLoc.name; myDistance = closestDist;
             document.getElementById('empLocName').innerText = targetLocName; document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--success);">อยู่ในพื้นที่ (ห่าง ${Math.round(myDistance)} ม.)</span>`;
             document.getElementById('btnIn').classList.remove('hidden'); document.getElementById('btnOut').classList.remove('hidden');
-            document.getElementById('cameraDiv').classList.remove('hidden'); // แสดงกล้องเมื่ออยู่ในพื้นที่
+            document.getElementById('cameraDiv').classList.remove('hidden'); 
         } else {
             myDistance = closestDist; targetLocName = closestLoc ? closestLoc.name : '-';
             document.getElementById('empLocName').innerText = targetLocName + ' (อ้างอิงจุดใกล้สุด)'; document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--danger);">อยู่นอกพื้นที่เช็คอิน</span>`;
             document.getElementById('btnIn').classList.add('hidden'); document.getElementById('btnOut').classList.add('hidden');
-            document.getElementById('cameraDiv').classList.add('hidden'); // ซ่อนกล้องเมื่ออยู่นอกพื้นที่
+            document.getElementById('cameraDiv').classList.add('hidden'); 
         }
         renderEmpMap();
     }
@@ -467,7 +530,6 @@
         if(type === 'time') { params.edit_type = document.getElementById('timeEditType').value; params.edit_date = document.getElementById('timeEditDate').value; params.edit_time = document.getElementById('timeEditTime').value; params.reason = document.getElementById('timeReason').value; } 
         else { params.leave_type = document.getElementById('leaveType').value; params.start_date = document.getElementById('leaveStart').value; params.end_date = document.getElementById('leaveEnd').value; params.reason = document.getElementById('leaveReason').value; }
         
-        // บังคับกรอกเหตุผล
         if(!params.reason || params.reason.trim() === '') {
             document.getElementById('reqMsg').innerText = "❌ กรุณาระบุเหตุผลให้ชัดเจน";
             return;
@@ -558,6 +620,7 @@
 
     function loadRequests() {
         document.getElementById('tb-req-time').innerHTML = '<tr><td colspan="4" class="text-center">กำลังโหลด...</td></tr>'; document.getElementById('tb-req-leave').innerHTML = '<tr><td colspan="4" class="text-center">กำลังโหลด...</td></tr>';
+        
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_requests'}) }).then(r=>r.json()).then(d => {
             let tbTime = document.getElementById('tb-req-time'); tbTime.innerHTML = '';
             d.time.forEach(i => {
@@ -574,7 +637,15 @@
         });
     }
 
-    function approveReq(s, id, st) { if(!confirm(`ยืนยันการให้สถานะ ${st}?`)) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole}) }).then(() => loadRequests()); }
+    function approveReq(s, id, st) { 
+        if(!confirm(`ยืนยันการให้สถานะ ${st}?`)) return; 
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole}) })
+        .then(() => { 
+            loadRequests(); 
+            loadDashboard(); 
+        }); 
+    }
+    
     function loadUsers() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { let tb = document.getElementById('tb-users'); tb.innerHTML = ''; d.data.forEach(i => { if(i[0]) { let actionBtns = currentRole === 'hr' ? `<button class="btn-yellow" onclick="openEditUser('${i[0]}', '${i[1]}', '${i[2]}')" style="padding:4px 8px; font-size:11px; margin-right:5px;">แก้ไข</button><button class="btn-outline" onclick="deleteUser('${i[0]}')" style="padding:4px 8px; font-size:11px;">ลบ</button>` : '-'; tb.innerHTML += `<tr><td style="font-weight:500;">${i[0]}</td><td style="color:var(--gray);">***</td><td><span style="background:var(--light-gray); padding:4px 8px; border-radius:4px; font-size:11px;">${i[2]}</span></td><td>${actionBtns}</td></tr>`; }}); }); }
     function addUser() { let u = document.getElementById('newU').value, p = document.getElementById('newP').value, r = document.getElementById('newR').value; if(!u || !p) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_user', new_user: u, new_pass: p, new_role: r}) }).then(() => { document.getElementById('newU').value=''; document.getElementById('newP').value=''; loadUsers(); }); }
     function openEditUser(u, p, r) { document.getElementById('editOldUserSpan').innerText = u; document.getElementById('editOldUser').value = u; document.getElementById('editU').value = u; document.getElementById('editP').value = p; document.getElementById('editR').value = r; document.getElementById('editUserDiv').classList.remove('hidden'); window.scrollTo(0, document.getElementById('editUserDiv').offsetTop); }
@@ -583,16 +654,108 @@
     function deleteUser(u) { if(confirm("ลบพนักงาน: " + u + " ใช่หรือไม่?")) fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_user', del_user: u}) }).then(() => loadUsers()); }
 
     function loadHolidaysUI() { let tb = document.getElementById('tb-holidays'); tb.innerHTML = ''; allHolidays.forEach(h => { tb.innerHTML += `<tr><td>${h.date}</td><td><b style="color:var(--primary);">${h.name}</b></td><td><button class="btn-outline" onclick="deleteHoliday('${h.date}')" style="padding:4px 8px; font-size:11px;">ลบ</button></td></tr>`; }); }
-    function addHoliday() { let d = document.getElementById('holDate').value; let n = document.getElementById('holName').value; if(!d || !n) return alert('โปรดกรอกข้อมูลให้ครบถ้วน'); let ds = d.split('-'); let thDate = ds[2] + '/' + ds[1] + '/' + ds[0]; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_holiday', date: thDate, name: n}) }).then(r=>r.json()).then(res => { if(res.status === 'success') { document.getElementById('holDate').value = ''; document.getElementById('holName').value = ''; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) }).then(r2=>r2.json()).then(d2 => { allHolidays = d2.holidays || []; loadHolidaysUI(); }); }}); }
-    function deleteHoliday(dateStr) { if(!confirm("ลบวันหยุดนี้?")) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_holiday', date: dateStr}) }).then(() => { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) }).then(r2=>r2.json()).then(d2 => { allHolidays = d2.holidays || []; loadHolidaysUI(); }); }); }
+    
+    function addHoliday() { 
+        let d = document.getElementById('holDate').value; 
+        let n = document.getElementById('holName').value; 
+        if(!d || !n) return alert('โปรดกรอกข้อมูลให้ครบถ้วน'); 
+        let ds = d.split('-'); 
+        let thDate = ds[2] + '/' + ds[1] + '/' + ds[0]; 
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_holiday', date: thDate, name: n}) })
+        .then(r=>r.json()).then(res => { 
+            if(res.status === 'success') {
+                document.getElementById('holDate').value = ''; 
+                document.getElementById('holName').value = ''; 
+                loadConfigAndHolidays(() => loadHolidaysUI()); 
+            }
+        }); 
+    }
+    
+    function deleteHoliday(dateStr) { if(!confirm("ลบวันหยุดนี้?")) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_holiday', date: dateStr}) }).then(() => { loadConfigAndHolidays(() => loadHolidaysUI()); }); }
 
+    function updateHrMapFromInput() {
+        let lat = parseFloat(document.getElementById('setLat').value);
+        let lon = parseFloat(document.getElementById('setLon').value);
+        if(!isNaN(lat) && !isNaN(lon) && hrMapObj) {
+            let pos = new L.LatLng(lat, lon);
+            hrMarker.setLatLng(pos);
+            hrCircle.setLatLng(pos);
+            hrMapObj.setView(pos, 16);
+        }
+    }
+
+    function searchLocation() { 
+        let q = document.getElementById('searchPlaceInput').value; 
+        if(!q) return alert("กรุณาพิมพ์ชื่อสถานที่"); 
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q))
+        .then(r => r.json()).then(data => { 
+            if(data.length > 0) { 
+                let sLat = parseFloat(data[0].lat); let sLon = parseFloat(data[0].lon);
+                renderHrMap(sLat, sLon, parseFloat(document.getElementById('setRad').value) || 100); 
+                document.getElementById('setLat').value = sLat.toFixed(6); 
+                document.getElementById('setLon').value = sLon.toFixed(6); 
+            } else { alert('ไม่พบข้อมูลสถานที่'); } 
+        }); 
+    }
+    
     function loadLocations() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_locations'}) }).then(r=>r.json()).then(d => { let tb = document.getElementById('tb-locations'); tb.innerHTML = ''; d.data.forEach(loc => { tb.innerHTML += `<tr><td><b>${loc.name}</b></td><td>${loc.radius}</td><td><button class="btn-yellow" onclick="openEditLoc('${loc.name}', '${loc.lat}', '${loc.lon}', '${loc.radius}')" style="padding:4px 8px; font-size:11px;">แก้ไข</button> <button class="btn-outline" onclick="deleteLocation('${loc.name}')" style="padding:4px 8px; font-size:11px;">ลบ</button></td></tr>`; }); if(d.data.length > 0 && !hrMapObj) renderHrMap(parseFloat(d.data[0].lat), parseFloat(d.data[0].lon), 100); }); }
-    function searchLocation() { let q = document.getElementById('searchPlaceInput').value; if(!q) return; fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q)).then(r => r.json()).then(data => { if(data.length > 0) { renderHrMap(parseFloat(data[0].lat), parseFloat(data[0].lon), parseFloat(document.getElementById('setRad').value) || 100); document.getElementById('setLat').value = data[0].lat; document.getElementById('setLon').value = data[0].lon; } }); }
-    function saveLocation() { let oldN = document.getElementById('editOldLocName').value; let n = document.getElementById('setLocName').value, lt = document.getElementById('setLat').value, ln = document.getElementById('setLon').value, r = document.getElementById('setRad').value; if(!n || !lt || !ln || !r) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_location', name: n, lat: lt, lon: ln, radius: r}) }).then(() => { cancelEditLoc(); loadLocations(); }); }
-    function openEditLoc(name, lat, lon, radius) { document.getElementById('locFormTitle').innerText = "✏️ แก้ไขสถานที่: " + name; document.getElementById('editOldLocName').value = name; document.getElementById('setLocName').value = name; document.getElementById('setLat').value = lat; document.getElementById('setLon').value = lon; document.getElementById('setRad').value = radius; document.getElementById('btnSaveLoc').innerText = "💾 บันทึกการแก้ไข"; document.getElementById('btnCancelLoc').classList.remove('hidden'); renderHrMap(parseFloat(lat), parseFloat(lon), parseFloat(radius)); window.scrollTo(0, document.getElementById('tab-settings').offsetTop); }
-    function cancelEditLoc() { document.getElementById('locFormTitle').innerText = "📍 ตั้งค่าจุดเช็คอินใหม่"; document.getElementById('editOldLocName').value = ''; document.getElementById('setLocName').value = ''; document.getElementById('setLat').value = ''; document.getElementById('setLon').value = ''; document.getElementById('setRad').value = ''; document.getElementById('btnSaveLoc').innerText = "💾 บันทึกสถานที่"; document.getElementById('btnCancelLoc').classList.add('hidden'); }
-    function deleteLocation(name) { if(!confirm("ลบสถานที่?")) fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_location', name: name}) }).then(() => loadLocations()); }
-    function renderHrMap(lat, lon, rad) { if(!hrMapObj) { hrMapObj = L.map('map-hr').setView([lat, lon], 16); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(hrMapObj); hrMarker = L.marker([lat, lon], {draggable: true}).addTo(hrMapObj); hrCircle = L.circle([lat, lon], { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.2, radius: rad }).addTo(hrMapObj); hrMapObj.on('click', function(e) { hrMarker.setLatLng(e.latlng); hrCircle.setLatLng(e.latlng); document.getElementById('setLat').value = e.latlng.lat.toFixed(6); document.getElementById('setLon').value = e.latlng.lng.toFixed(6); }); hrMarker.on('dragend', function(e) { let pos = hrMarker.getLatLng(); hrCircle.setLatLng(pos); document.getElementById('setLat').value = pos.lat.toFixed(6); document.getElementById('setLon').value = pos.lng.toFixed(6); }); } else { hrMapObj.setView([lat, lon], 16); hrMarker.setLatLng([lat, lon]); hrCircle.setLatLng([lat, lon]); hrCircle.setRadius(rad); } setTimeout(() => { hrMapObj.invalidateSize(); }, 200); }
+    
+    function saveLocation() { 
+        let oldN = document.getElementById('editOldLocName').value; 
+        let n = document.getElementById('setLocName').value;
+        let lt = document.getElementById('setLat').value;
+        let ln = document.getElementById('setLon').value;
+        let r = document.getElementById('setRad').value; 
+        if(!n || !lt || !ln || !r) return alert("กรุณากรอกข้อมูลสถานที่ให้ครบถ้วน"); 
+        
+        let actionData = oldN ? {action: 'edit_location', old_name: oldN, new_name: n, lat: lt, lon: ln, radius: r} : {action: 'add_location', name: n, lat: lt, lon: ln, radius: r}; 
+        
+        document.getElementById('btnSaveLoc').innerText = "กำลังบันทึก..."; 
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(actionData) }).then(() => { 
+            cancelEditLoc(); 
+            loadLocations(); 
+        }); 
+    }
+    
+    function openEditLoc(name, lat, lon, radius) { 
+        document.getElementById('locFormTitle').innerText = "✏️ แก้ไขสถานที่: " + name; 
+        document.getElementById('editOldLocName').value = name; 
+        document.getElementById('setLocName').value = name; 
+        document.getElementById('setLat').value = lat; 
+        document.getElementById('setLon').value = lon; 
+        document.getElementById('setRad').value = radius; 
+        document.getElementById('btnSaveLoc').innerText = "💾 บันทึกการแก้ไข"; 
+        document.getElementById('btnCancelLoc').classList.remove('hidden'); 
+        renderHrMap(parseFloat(lat), parseFloat(lon), parseFloat(radius)); 
+        window.scrollTo(0, document.getElementById('tab-settings').offsetTop); 
+    }
+    
+    function cancelEditLoc() { 
+        document.getElementById('locFormTitle').innerText = "📍 ตั้งค่าจุดเช็คอินใหม่"; 
+        document.getElementById('editOldLocName').value = ''; 
+        document.getElementById('setLocName').value = ''; 
+        document.getElementById('setLat').value = ''; 
+        document.getElementById('setLon').value = ''; 
+        document.getElementById('setRad').value = ''; 
+        document.getElementById('btnSaveLoc').innerText = "💾 บันทึกสถานที่"; 
+        document.getElementById('btnCancelLoc').classList.add('hidden'); 
+    }
+    
+    function deleteLocation(name) { if(!confirm("ลบสถานที่?")) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_location', name: name}) }).then(() => loadLocations()); }
+    
+    function renderHrMap(lat, lon, rad) { 
+        if(!hrMapObj) { 
+            hrMapObj = L.map('map-hr').setView([lat, lon], 16); 
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(hrMapObj); 
+            hrMarker = L.marker([lat, lon], {draggable: true}).addTo(hrMapObj); 
+            hrCircle = L.circle([lat, lon], { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.2, radius: rad }).addTo(hrMapObj); 
+            hrMapObj.on('click', function(e) { hrMarker.setLatLng(e.latlng); hrCircle.setLatLng(e.latlng); document.getElementById('setLat').value = e.latlng.lat.toFixed(6); document.getElementById('setLon').value = e.latlng.lng.toFixed(6); }); 
+            hrMarker.on('dragend', function(e) { let pos = hrMarker.getLatLng(); hrCircle.setLatLng(pos); document.getElementById('setLat').value = pos.lat.toFixed(6); document.getElementById('setLon').value = pos.lng.toFixed(6); }); 
+        } else { 
+            hrMapObj.setView([lat, lon], 16); hrMarker.setLatLng([lat, lon]); hrCircle.setLatLng([lat, lon]); hrCircle.setRadius(rad); 
+        } 
+        setTimeout(() => { hrMapObj.invalidateSize(); }, 200); 
+    }
     function updateHrCircleRadius() { let newRad = parseFloat(document.getElementById('setRad').value) || 0; if(hrCircle) hrCircle.setRadius(newRad); }
 </script>
 </body>
