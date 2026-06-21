@@ -67,12 +67,21 @@
         .cal-date { font-size: 14px; font-weight: bold; color: var(--dark); margin-bottom: 4px; }
         .cal-tag { font-size: 11px; padding: 3px 2px; border-radius: 4px; color: white; text-align: center; margin-bottom: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .bg-green { background: var(--success); } .bg-orange { background: var(--warning); } .bg-red { background: var(--danger); } .bg-blue { background: var(--primary); } .bg-gray { background: #d1d5db; color: #374151; } .bg-purple { background: #8b5cf6; }
-        
-        /* สถานะอนุมัติ */
         .status-Pending { color: var(--warning); font-weight: bold; } .status-Approved { color: var(--success); font-weight: bold; } .status-Rejected { color: var(--danger); font-weight: bold; }
+
+        /* Loading Overlay (ใหม่) */
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .loader { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+
+<div id="loadingOverlay" class="hidden">
+    <div class="loader"></div>
+    <h3 style="color: var(--primary); margin:0;">กำลังโหลดข้อมูล...</h3>
+    <p style="color: var(--gray); font-size: 14px;">โปรดรอสักครู่</p>
+</div>
 
 <div class="container">
     <div class="box login-box" id="loginSec">
@@ -83,7 +92,6 @@
         <p id="loginMsg" style="color:var(--danger); font-weight:500; margin-top:15px;"></p>
     </div>
 
-    <!-- ================= หน้าพนักงาน ================= -->
     <div class="box hidden" id="empSec">
         <div class="app-header">
             <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span></h2>
@@ -96,7 +104,6 @@
             <button class="tab-btn" id="btnEmpTabRequest" onclick="switchEmpTab('request')">📝 คำขอ/สถานะ</button>
         </div>
         
-        <!-- Tab ลงเวลา -->
         <div id="emp-tab-checkin">
             <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                 <p style="margin:0; font-size: 15px;">📍 สถานที่: <b id="empLocName" style="color:var(--success);">กำลังโหลด...</b></p>
@@ -115,13 +122,13 @@
             <p id="empMsg" class="text-center mt-3"></p>
         </div>
 
-        <!-- ปฏิทินประวัติเข้างาน -->
         <div id="emp-tab-history" class="hidden">
             <div id="myCalendarContainer"></div>
             <div class="mt-3" style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid #e5e7eb;">
                 <h4 style="margin-top:0;">สัญลักษณ์:</h4>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px;">
                     <span class="cal-tag bg-green" style="padding:4px 8px;">เข้างานปกติ</span>
+                    <span class="cal-tag bg-green" style="padding:4px 8px;">ปกติ(ลืมเช็คอิน)</span>
                     <span class="cal-tag bg-orange legend-late" style="padding:4px 8px;">เข้าสาย</span>
                     <span class="cal-tag bg-red" style="padding:4px 8px;">ขาดงาน</span>
                     <span class="cal-tag bg-blue" style="padding:4px 8px;">ลา</span>
@@ -130,12 +137,8 @@
             </div>
         </div>
 
-        <!-- Tab ส่งคำขอ และ ดูสถานะคำขอ -->
         <div id="emp-tab-request" class="hidden">
-            <select id="reqType" onchange="toggleReqForm()">
-                <option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option><option value="leave">ส่งคำขอลาหยุด</option>
-            </select>
-            
+            <select id="reqType" onchange="toggleReqForm()"><option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option><option value="leave">ส่งคำขอลาหยุด</option></select>
             <div id="formTimeEdit" class="edit-box" style="background:#fffbeb; border-color:#fef08a;">
                 <h3 style="color:#d97706; margin-top:0;">📝 แก้ไขเวลาทำงาน</h3>
                 <select id="timeEditType"><option value="ลืมเช็คอิน">ลืมเช็คอิน</option><option value="ลืมเช็คเอาท์">ลืมเช็คเอาท์</option><option value="แก้ไขเวลาผิดพลาด">แก้ไขเวลาที่ผิดพลาด</option></select>
@@ -143,7 +146,6 @@
                 <textarea id="timeReason" rows="3" placeholder="ระบุเหตุผล..."></textarea><input type="file" id="timeFile" accept="image/*" style="padding: 8px;">
                 <button class="btn-yellow" onclick="submitRequest('time')" style="width: 100%; margin-top: 10px;">ส่งคำขอแก้ไข</button>
             </div>
-            
             <div id="formLeave" class="edit-box hidden" style="background:#f3f4f6; border-color:#e5e7eb;">
                 <h3 style="color:#374151; margin-top:0;">🗓️ ขอลาหยุด</h3>
                 <select id="leaveType"><option value="ลากิจ">ลากิจ</option><option value="ลาป่วย">ลาป่วย</option><option value="ลาพักร้อน">ลาพักร้อน</option></select>
@@ -152,20 +154,13 @@
                 <button class="btn-primary" onclick="submitRequest('leave')" style="width: 100%; margin-top: 10px;">ส่งคำขอลา</button>
             </div>
             <p id="reqMsg" class="text-center mt-3" style="color:var(--success); font-weight:600;"></p>
-
             <hr style="margin:30px 0; border:1px solid #e5e7eb;">
             <h3 style="margin-top:0; color:var(--dark);">📋 สถานะคำขอของฉัน</h3>
             <button onclick="loadMyRequests()" class="btn-grey" style="width: auto; margin-bottom: 10px;">🔄 รีเฟรชสถานะ</button>
-            <div class="table-responsive">
-                <table>
-                    <thead><tr><th>ประเภท</th><th>รายละเอียด</th><th>วันที่ส่ง</th><th>สถานะ HR</th></tr></thead>
-                    <tbody id="tb-my-reqs"></tbody>
-                </table>
-            </div>
+            <div class="table-responsive"><table><thead><tr><th>ประเภท</th><th>รายละเอียด</th><th>วันที่ส่ง</th><th>สถานะ HR</th></tr></thead><tbody id="tb-my-reqs"></tbody></table></div>
         </div>
     </div>
 
-    <!-- ================= หน้า HR ================= -->
     <div class="box hidden" id="hrSec">
         <div class="app-header">
             <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span></h2>
@@ -196,9 +191,7 @@
 
         <div id="tab-logs" class="hidden">
             <button onclick="loadLogs()" class="btn-primary mb-3" style="width: auto;">รีเฟรชข้อมูล</button>
-            <div class="table-responsive">
-                <table><thead><tr><th>เวลา</th><th>ชื่อ-สกุล</th><th>สถานะ</th><th>สถานที่</th><th>รูปถ่าย</th></tr></thead><tbody id="tb-logs"></tbody></table>
-            </div>
+            <div class="table-responsive"><table><thead><tr><th>เวลา</th><th>ชื่อ-สกุล</th><th>สถานะ</th><th>สถานที่</th><th>รูปถ่าย</th></tr></thead><tbody id="tb-logs"></tbody></table></div>
         </div>
 
         <div id="tab-hrCalendar" class="hidden">
@@ -211,6 +204,7 @@
                 <h4 style="margin-top:0;">สัญลักษณ์:</h4>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px;">
                     <span class="cal-tag bg-green" style="padding:4px 8px;">เข้างานปกติ</span>
+                    <span class="cal-tag bg-green" style="padding:4px 8px;">ปกติ(ลืมเช็คอิน)</span>
                     <span class="cal-tag bg-orange legend-late" style="padding:4px 8px;">เข้าสาย</span>
                     <span class="cal-tag bg-red" style="padding:4px 8px;">ขาดงาน</span>
                     <span class="cal-tag bg-blue" style="padding:4px 8px;">ลา</span>
@@ -229,49 +223,26 @@
 
         <div id="tab-users" class="hidden">
             <div id="addUserDiv" class="edit-box"><h3 style="margin-top:0;">➕ เพิ่มพนักงาน</h3><div class="flex-gap"><input type="text" id="newU" placeholder="Username"><input type="password" id="newP" placeholder="Password"></div><select id="newR"><option value="employee">พนักงาน</option><option value="supervisor">หัวหน้างาน</option><option value="hr">แอดมิน</option></select><button class="btn-primary" onclick="addUser()">บันทึก</button></div>
-            <div id="editUserDiv" class="edit-box hidden" style="background:#fffbeb; border-color:#fef08a;">
-                <h3 style="margin-top:0; color:#d97706;">✏️ แก้ไขข้อมูล: <span id="editOldUserSpan"></span></h3>
-                <input type="hidden" id="editOldUser">
-                <div class="flex-gap"><input type="text" id="editU" placeholder="ชื่อผู้ใช้ใหม่"><input type="text" id="editP" placeholder="รหัสผ่านใหม่"></div>
-                <select id="editR"><option value="employee">พนักงาน</option><option value="supervisor">หัวหน้างาน</option><option value="hr">แอดมิน</option></select>
-                <div class="flex-gap"><button class="btn-yellow" onclick="saveEditUser()" style="flex:1;">💾 บันทึก</button><button class="btn-grey" onclick="cancelEditUser()" style="flex:1;">ยกเลิก</button></div>
-            </div>
+            <div id="editUserDiv" class="edit-box hidden" style="background:#fffbeb; border-color:#fef08a;"><h3 style="margin-top:0; color:#d97706;">✏️ แก้ไขข้อมูล: <span id="editOldUserSpan"></span></h3><input type="hidden" id="editOldUser"><div class="flex-gap"><input type="text" id="editU" placeholder="ชื่อผู้ใช้ใหม่"><input type="text" id="editP" placeholder="รหัสผ่านใหม่"></div><select id="editR"><option value="employee">พนักงาน</option><option value="supervisor">หัวหน้างาน</option><option value="hr">แอดมิน</option></select><div class="flex-gap"><button class="btn-yellow" onclick="saveEditUser()" style="flex:1;">💾 บันทึก</button><button class="btn-grey" onclick="cancelEditUser()" style="flex:1;">ยกเลิก</button></div></div>
             <div class="table-responsive mt-3"><table><thead><tr><th>ชื่อผู้ใช้งาน</th><th>รหัสผ่าน</th><th>ระดับสิทธิ์</th><th>จัดการ</th></tr></thead><tbody id="tb-users"></tbody></table></div>
         </div>
 
         <div id="tab-settings" class="hidden">
             <h3 style="margin-top:0;">⏰ ตั้งค่าเวลาเข้า-ออกงาน (บริษัท)</h3>
             <div class="edit-box" style="margin-top:0;">
-                <div class="flex-gap">
-                    <div style="flex:1;"><label style="font-size:13px; font-weight:600;">เวลาเข้างาน:</label><input type="time" id="confStart"></div>
-                    <div style="flex:1;"><label style="font-size:13px; font-weight:600;">เวลาเลิกงาน:</label><input type="time" id="confEnd"></div>
-                </div>
+                <div class="flex-gap"><div style="flex:1;"><label style="font-size:13px; font-weight:600;">เวลาเข้างาน:</label><input type="time" id="confStart"></div><div style="flex:1;"><label style="font-size:13px; font-weight:600;">เวลาเลิกงาน:</label><input type="time" id="confEnd"></div></div>
                 <button class="btn-primary" onclick="saveConfig()" style="width: 100%; margin-top:10px;">💾 บันทึกเวลาทำงาน</button>
             </div>
-            
             <hr style="margin:30px 0; border:1px solid #e5e7eb;">
-            
             <h3 style="margin-top:0;">🏖️ จัดการวันหยุดประจำปี (บริษัท)</h3>
             <div class="edit-box" style="margin-top:0;">
-                <div class="flex-gap">
-                    <input type="date" id="holDate" style="flex:1;">
-                    <input type="text" id="holName" placeholder="ชื่อวันหยุด (เช่น ปีใหม่)" style="flex:2;">
-                    <button class="btn-primary" onclick="addHoliday()" style="flex:1;">➕ เพิ่มวันหยุด</button>
-                </div>
-                <div class="table-responsive mt-3">
-                    <table><thead><tr><th>วันที่</th><th>ชื่อวันหยุด</th><th>ลบ</th></tr></thead><tbody id="tb-holidays"></tbody></table>
-                </div>
+                <div class="flex-gap"><input type="date" id="holDate" style="flex:1;"><input type="text" id="holName" placeholder="ชื่อวันหยุด" style="flex:2;"><button class="btn-primary" onclick="addHoliday()" style="flex:1;">➕ เพิ่มวันหยุด</button></div>
+                <div class="table-responsive mt-3"><table><thead><tr><th>วันที่</th><th>ชื่อวันหยุด</th><th>ลบ</th></tr></thead><tbody id="tb-holidays"></tbody></table></div>
             </div>
-            
             <hr style="margin:30px 0; border:1px solid #e5e7eb;">
-            
             <h3 style="margin-top:0;">📍 ตั้งค่าจุดเช็คอิน</h3>
             <div class="edit-box" style="margin-top:0;">
-                <div id="map-hr"></div>
-                <input type="text" id="setLocName" placeholder="ตั้งชื่อสถานที่" style="font-weight: 500;">
-                <div class="flex-gap"><input type="text" id="setLat" placeholder="ละติจูด" readonly><input type="text" id="setLon" placeholder="ลองจิจูด" readonly></div>
-                <input type="number" id="setRad" placeholder="รัศมีอนุญาต (เมตร)" oninput="updateHrCircleRadius()">
-                <button class="btn-primary" id="btnSaveLoc" onclick="saveLocation()" style="width: 100%; margin-top:10px;">💾 บันทึกสถานที่</button>
+                <div id="map-hr"></div><input type="text" id="setLocName" placeholder="ตั้งชื่อสถานที่" style="font-weight: 500;"><div class="flex-gap"><input type="text" id="setLat" placeholder="ละติจูด" readonly><input type="text" id="setLon" placeholder="ลองจิจูด" readonly></div><input type="number" id="setRad" placeholder="รัศมีอนุญาต (เมตร)" oninput="updateHrCircleRadius()"><button class="btn-primary" id="btnSaveLoc" onclick="saveLocation()" style="width: 100%; margin-top:10px;">💾 บันทึกสถานที่</button>
             </div>
             <div class="table-responsive mt-3"><table><thead><tr><th>ชื่อสถานที่</th><th>รัศมี (ม.)</th><th>จัดการ</th></tr></thead><tbody id="tb-locations"></tbody></table></div>
         </div>
@@ -280,7 +251,7 @@
 
 <script>
     // ********* ใส่ URL WEB APP ของคุณที่นี่ *********
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw5Qx1GSo8B7-x4HV2pn-dNE1opT7S0t58l4O4F_cwV4qGQDayUzq22Sx4o0uDbe9q3/exec'; 
+    const scriptURL = 'ใส่_WEB_APP_URL_ของคุณที่นี่'; 
     
     let currentUser = '', currentRole = '';
     let allLocations = [], allHolidays = [];
@@ -288,23 +259,51 @@
     let myLat = 0, myLon = 0, myDistance = 0, targetLocName = '';
     let empMapObj = null, hrMapObj = null, hrMarker = null, hrCircle = null, videoStream = null;
     let currentLogs = [];
-
     let calDate = new Date(); let hrCalDate = new Date(); let hrAllLogs = [];
 
+    // ================= โหลดข้อมูลรวดเดียวจบ (Mega-Fetch) =================
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
         let savedRole = localStorage.getItem('work_checkin_role');
+        
         if(savedUser && savedRole) {
             currentUser = savedUser; currentRole = savedRole;
             document.getElementById('loginSec').classList.add('hidden');
-            loadConfigAndHolidays(() => {
-                if(currentRole === 'employee') {
-                    document.getElementById('empSec').classList.remove('hidden'); document.getElementById('empName').innerText = currentUser;
-                    initGPS();
-                } else {
-                    document.getElementById('hrSec').classList.remove('hidden'); document.getElementById('roleTitle').innerText = "HR Admin";
-                    loadDashboard(); fetchUsersForDropdown();
+            document.getElementById('loadingOverlay').classList.remove('hidden'); // โชว์ Loading
+            
+            fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) })
+            .then(r=>r.json()).then(d => {
+                document.getElementById('loadingOverlay').classList.add('hidden'); // ซ่อน Loading
+                
+                if(d.status === 'success') {
+                    workConfig = d.config || { start: "08:30", end: "17:30" };
+                    document.getElementById('confStart').value = workConfig.start;
+                    document.getElementById('confEnd').value = workConfig.end;
+                    document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${workConfig.start})`);
+                    
+                    allHolidays = d.holidays || [];
+
+                    if(currentRole === 'employee') {
+                        document.getElementById('empSec').classList.remove('hidden'); 
+                        document.getElementById('empName').innerText = currentUser;
+                        allLocations = d.locations || [];
+                        refreshGPS(); startCamera();
+                    } else {
+                        document.getElementById('hrSec').classList.remove('hidden'); 
+                        document.getElementById('roleTitle').innerText = (currentRole === 'supervisor' ? "Supervisor" : "HR Admin");
+                        if(currentRole === 'supervisor') {
+                            document.getElementById('tabBtnSettings').classList.add('hidden');
+                            document.getElementById('addUserDiv').classList.add('hidden'); 
+                        }
+                        renderDashboard(d.dashboard);
+                        let sel = document.getElementById('hrCalUserSelect'); 
+                        sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; 
+                        if(d.users) d.users.forEach(u => { if(u[0]) sel.innerHTML += `<option value="${u[0]}">${u[0]}</option>`; });
+                    }
                 }
+            }).catch(err => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่");
             });
         }
     };
@@ -317,43 +316,31 @@
                 currentUser = d.username; currentRole = d.role;
                 localStorage.setItem('work_checkin_user', currentUser); localStorage.setItem('work_checkin_role', currentRole);
                 document.getElementById('loginSec').classList.add('hidden');
-                loadConfigAndHolidays(() => {
-                    if(d.role === 'employee') {
-                        document.getElementById('empSec').classList.remove('hidden'); document.getElementById('empName').innerText = currentUser;
-                        initGPS();
-                    } else {
-                        document.getElementById('hrSec').classList.remove('hidden'); document.getElementById('roleTitle').innerText = "HR Admin";
-                        loadDashboard(); fetchUsersForDropdown();
-                    }
-                });
+                // พอ Login เสร็จก็ให้ Reload หน้าเว็บ 1 ที เพื่อให้ไปรัน Mega-Fetch ด้านบน
+                location.reload(); 
             } else { document.getElementById('loginMsg').innerText = d.message; }
+        });
+    }
+
+    function renderDashboard(dashData) {
+        if(!dashData) return;
+        document.getElementById('dashIn').innerText = dashData.in; 
+        document.getElementById('dashOut').innerText = dashData.out; 
+        document.getElementById('dashLeave').innerText = dashData.leave; 
+        document.getElementById('dashPending').innerText = dashData.pending;
+        document.getElementById('btnExportExcel').href = `https://docs.google.com/spreadsheets/d/${dashData.sheetId}/export?format=xlsx`;
+
+        let tlDiv = document.getElementById('activityTimeline'); tlDiv.innerHTML = '';
+        if(dashData.activities.length === 0) { tlDiv.innerHTML = '<p style="color:var(--gray); font-size:14px;">ยังไม่มีความเคลื่อนไหววันนี้</p>'; }
+        dashData.activities.forEach(act => {
+            let color = act[2].includes('เข้า') ? 'var(--primary)' : (act[2].includes('ลา') ? 'var(--danger)' : 'var(--success)');
+            tlDiv.innerHTML += `<div class="timeline-item" style="border-left-color: ${color};"><b>${act[1]}</b> <span style="color:${color}; font-weight:500;">${act[2]}</span><br><span style="color:var(--gray); font-size:12px;">⏰ ${act[0].split(' ')[1]} | 📍 ${act[6]||'-'}</span></div>`;
         });
     }
 
     function logout() { if(videoStream) { videoStream.getTracks().forEach(t => t.stop()); } localStorage.removeItem('work_checkin_user'); localStorage.removeItem('work_checkin_role'); location.reload(); }
 
-    function loadConfigAndHolidays(callback) {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_config'}) }).then(r=>r.json()).then(d => {
-            if(d.data) {
-                workConfig = d.data;
-                document.getElementById('confStart').value = workConfig.start;
-                document.getElementById('confEnd').value = workConfig.end;
-                document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${workConfig.start})`);
-            }
-            fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_holidays'}) }).then(r2=>r2.json()).then(d2 => {
-                allHolidays = d2.data.map(h => ({date: h[0], name: h[1]}));
-                if(callback) callback();
-            });
-        });
-    }
-
-    function saveConfig() {
-        let s = document.getElementById('confStart').value; let e = document.getElementById('confEnd').value;
-        if(!s || !e) return alert("กรุณาระบุเวลาให้ครบ");
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'save_config', start: s, end: e}) }).then(() => {
-            alert("บันทึกเวลาบริษัทสำเร็จ"); loadConfigAndHolidays();
-        });
-    }
+    function saveConfig() { let s = document.getElementById('confStart').value; let e = document.getElementById('confEnd').value; if(!s || !e) return alert("กรุณาระบุเวลาให้ครบ"); fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'save_config', start: s, end: e}) }).then(() => { alert("บันทึกเวลาบริษัทสำเร็จ"); location.reload(); }); }
 
     function switchEmpTab(tab) {
         document.getElementById('emp-tab-checkin').classList.add('hidden'); document.getElementById('emp-tab-history').classList.add('hidden'); document.getElementById('emp-tab-request').classList.add('hidden');
@@ -425,35 +412,21 @@
         if(fileInput.files.length > 0) { let reader = new FileReader(); reader.onload = function(e) { params.imageBase64 = e.target.result.split(',')[1]; sendReqData(params); }; reader.readAsDataURL(fileInput.files[0]); } else { sendReqData(params); }
     }
     
-    function sendReqData(params) { 
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { 
-            document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; 
-            loadMyRequests(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); 
-        }); 
-    }
+    function sendReqData(params) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; loadMyRequests(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); }); }
 
     function loadMyRequests() {
-        let tb = document.getElementById('tb-my-reqs'); 
-        tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดสถานะ...</td></tr>';
+        let tb = document.getElementById('tb-my-reqs'); tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดสถานะ...</td></tr>';
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_requests', username: currentUser}) }).then(r=>r.json()).then(d => {
             tb.innerHTML = '';
             if(d.time.length === 0 && d.leave.length === 0) { tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">ไม่มีประวัติการส่งคำขอ</td></tr>'; return; }
-            d.time.forEach(i => {
-                let statusText = i[8] === 'Approved' ? 'อนุมัติแล้ว' : (i[8] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
-                tb.innerHTML += `<tr><td><b>แก้ไขเวลา</b><br><span style="font-size:11px; color:var(--gray);">${i[3]}</span></td><td style="font-size:13px;">${i[4]}</td><td style="font-size:12px;">${i[1].split(' ')[0]}</td><td><span class="status-${i[8]}">${statusText}</span></td></tr>`;
-            });
-            d.leave.forEach(i => {
-                let statusText = i[10] === 'Approved' ? 'อนุมัติแล้ว' : (i[10] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
-                tb.innerHTML += `<tr><td><b>ลางาน</b><br><span style="font-size:11px; color:var(--gray);">${i[3]}</span></td><td style="font-size:13px;">${i[4]} ถึง ${i[5]}</td><td style="font-size:12px;">${i[1].split(' ')[0]}</td><td><span class="status-${i[10]}">${statusText}</span></td></tr>`;
-            });
+            d.time.forEach(i => { let statusText = i[8] === 'Approved' ? 'อนุมัติแล้ว' : (i[8] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); tb.innerHTML += `<tr><td><b>แก้ไขเวลา</b><br><span style="font-size:11px; color:var(--gray);">${i[3]}</span></td><td style="font-size:13px;">${i[4]}</td><td style="font-size:12px;">${i[1].split(' ')[0]}</td><td><span class="status-${i[8]}">${statusText}</span></td></tr>`; });
+            d.leave.forEach(i => { let statusText = i[10] === 'Approved' ? 'อนุมัติแล้ว' : (i[10] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); tb.innerHTML += `<tr><td><b>ลางาน</b><br><span style="font-size:11px; color:var(--gray);">${i[3]}</span></td><td style="font-size:13px;">${i[4]} ถึง ${i[5]}</td><td style="font-size:12px;">${i[1].split(' ')[0]}</td><td><span class="status-${i[10]}">${statusText}</span></td></tr>`; });
         });
     }
 
     function loadMyLogs() {
         document.getElementById('myCalendarContainer').innerHTML = '<p class="text-center">กำลังโหลดปฏิทิน...</p>';
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentUser}) }).then(r=>r.json()).then(d => {
-            currentLogs = d.data; renderCalendar('myCalendarContainer', currentLogs, calDate, false);
-        });
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentUser}) }).then(r=>r.json()).then(d => { currentLogs = d.data; renderCalendar('myCalendarContainer', currentLogs, calDate, false); });
     }
 
     function changeMonth(offset, containerId, isHrView) {
@@ -462,37 +435,38 @@
     }
 
     function renderCalendar(containerId, logs, dateObj, isHrView) {
-        let container = document.getElementById(containerId);
-        let month = dateObj.getMonth(); let year = dateObj.getFullYear();
+        let container = document.getElementById(containerId); let month = dateObj.getMonth(); let year = dateObj.getFullYear();
         let monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
         let html = `<div class="cal-header-bar"><button onclick="changeMonth(-1, '${containerId}', ${isHrView})">◀</button><span>${monthNames[month]} ${year + 543}</span><button onclick="changeMonth(1, '${containerId}', ${isHrView})">▶</button></div><div class="calendar">`;
         ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].forEach(d => html += `<div class="cal-head">${d}</div>`);
         let firstDay = new Date(year, month, 1).getDay(); let daysInMonth = new Date(year, month + 1, 0).getDate();
         for(let i=0; i<firstDay; i++) html += `<div class="cal-day empty"></div>`;
         let today = new Date(); today.setHours(0,0,0,0);
+        
         for(let d=1; d<=daysInMonth; d++) {
             let loopDate = new Date(year, month, d); let dateStr = `${String(d).padStart(2,'0')}/${String(month+1).padStart(2,'0')}/${year}`;
             let dayLogs = logs.filter(l => l[0] && l[0].split(' ')[0] === dateStr);
-            let hasCheckIn = false, isLate = false, hasLeave = false; 
-            let isHoliday = allHolidays.find(h => h.date === dateStr); 
-            // แก้ไข: ให้วันหยุดสุดสัปดาห์มีแค่วันอาทิตย์ (0) เท่านั้น
-            let isWeekend = (loopDate.getDay() === 0);
+            let hasCheckIn = false, isLate = false, hasLeave = false, isForgotCheckIn = false, leaveLabel = 'ลางาน'; 
+            let isHoliday = allHolidays.find(h => h.date === dateStr); let isWeekend = (loopDate.getDay() === 0);
             
             dayLogs.forEach(l => { 
-                if(l[2].includes('ลา')) hasLeave = true; 
+                if(l[2].includes('ลา')) { hasLeave = true; leaveLabel = l[2]; } 
                 if(l[2].includes('เข้างาน')) { 
                     hasCheckIn = true; 
-                    // ตรวจสอบสายด้วยเวลาบริษัท
-                    if(l[0].split(' ')[1] > workConfig.start + ":00") isLate = true; 
+                    if (l[2].includes('ลืมเช็คอิน')) { isForgotCheckIn = true; } 
+                    else if(l[0].split(' ')[1] > workConfig.start + ":00") { isLate = true; }
                 } 
             });
+            
             let tags = '';
             if(isHoliday) tags += `<div class="cal-tag bg-purple">${isHoliday.name}</div>`;
             if(isWeekend && !hasCheckIn && !hasLeave) tags += `<div class="cal-tag bg-gray">หยุดประจำสัปดาห์</div>`;
             
-            if(hasLeave) { tags += `<div class="cal-tag bg-blue">ลางาน</div>`; } 
-            else if(hasCheckIn) { if(isLate) tags += `<div class="cal-tag bg-orange">สาย</div>`; else tags += `<div class="cal-tag bg-green">ปกติ</div>`; } 
-            else if(!isWeekend && !isHoliday && loopDate < today) { tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; }
+            if(hasLeave) { tags += `<div class="cal-tag bg-blue">${leaveLabel}</div>`; } 
+            else if(hasCheckIn) { 
+                if(isForgotCheckIn) tags += `<div class="cal-tag bg-green">ปกติ(ลืมเช็คอิน)</div>`;
+                else if(isLate) tags += `<div class="cal-tag bg-orange">เข้าสาย</div>`; else tags += `<div class="cal-tag bg-green">ปกติ</div>`; 
+            } else if(!isWeekend && !isHoliday && loopDate < today) { tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; }
             
             html += `<div class="cal-day"><div class="cal-date">${d}</div>${tags}</div>`;
         }
@@ -506,23 +480,7 @@
         if(tab === 'dashboard') loadDashboard(); if(tab === 'logs') loadLogs(); if(tab === 'hrCalendar') loadHrCalendarData(); if(tab === 'approvals') loadRequests(); if(tab === 'users') loadUsers(); if(tab === 'settings') { loadLocations(); loadHolidaysUI(); }
     }
 
-    function loadDashboard() {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_dashboard_data'}) }).then(r=>r.json()).then(d => {
-            document.getElementById('dashIn').innerText = d.stats.in; document.getElementById('dashOut').innerText = d.stats.out; document.getElementById('dashLeave').innerText = d.stats.leave; document.getElementById('dashPending').innerText = d.stats.pending;
-            document.getElementById('btnExportExcel').href = `https://docs.google.com/spreadsheets/d/${d.sheetId}/export?format=xlsx`;
-            let tlDiv = document.getElementById('activityTimeline'); tlDiv.innerHTML = '';
-            if(d.activities.length === 0) tlDiv.innerHTML = '<p>ยังไม่มีความเคลื่อนไหว</p>';
-            d.activities.forEach(act => { let c = act[2].includes('เข้า')?'var(--primary)':(act[2].includes('ลา')?'var(--danger)':'var(--success)'); tlDiv.innerHTML += `<div class="timeline-item" style="border-left-color:${c};"><b>${act[1]}</b> <span style="color:${c};">${act[2]}</span><br><span style="color:var(--gray); font-size:12px;">⏰ ${act[0].split(' ')[1]}</span></div>`; });
-        });
-    }
-
-    function loadLogs() {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_logs'}) }).then(r=>r.json()).then(d => {
-            hrAllLogs = d.data; let tb = document.getElementById('tb-logs'); tb.innerHTML = '';
-            d.data.forEach(i => { let c = i[2].includes('เข้า') ? 'var(--success)' : (i[2].includes('ลา') ? 'var(--warning)' : 'var(--danger)'); let imgLink = i[7] && i[7].startsWith('http') ? `<a href="${i[7]}" target="_blank">🖼️</a>` : '-'; tb.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${i[2]}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; });
-        });
-    }
-
+    function loadLogs() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_logs'}) }).then(r=>r.json()).then(d => { hrAllLogs = d.data; let tb = document.getElementById('tb-logs'); tb.innerHTML = ''; d.data.forEach(i => { let c = i[2].includes('เข้า') ? 'var(--success)' : (i[2].includes('ลา') ? 'var(--warning)' : 'var(--danger)'); let imgLink = i[7] && i[7].startsWith('http') ? `<a href="${i[7]}" target="_blank">🖼️</a>` : '-'; tb.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${i[2]}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; }); }); }
     function fetchUsersForDropdown() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { let sel = document.getElementById('hrCalUserSelect'); sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; d.data.forEach(u => { if(u[0]) sel.innerHTML += `<option value="${u[0]}">${u[0]}</option>`; }); }); }
     function loadHrCalendarData() { if(hrAllLogs.length === 0) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_logs'}) }).then(r=>r.json()).then(d => { hrAllLogs = d.data; renderHrCalendar(); }); } else { renderHrCalendar(); } }
     function renderHrCalendar() { let user = document.getElementById('hrCalUserSelect').value; if(!user) { document.getElementById('hrCalendarContainer').innerHTML = '<p class="text-center" style="color:var(--gray); padding:20px;">โปรดเลือกพนักงานเพื่อดูปฏิทินประวัติ</p>'; return; } let userLogs = hrAllLogs.filter(l => l[1] === user); renderCalendar('hrCalendarContainer', userLogs, hrCalDate, true); }
@@ -533,53 +491,31 @@
             let tbTime = document.getElementById('tb-req-time'); tbTime.innerHTML = '';
             d.time.forEach(i => {
                 let status = currentRole === 'hr' ? i[8] : i[7]; let btn = '';
-                if(status === 'Pending') btn = `<button class="btn-green" onclick="approveReq('TimeRequests', '${i[0]}', 'Approved')" style="padding:6px 10px; font-size:12px; margin-right:5px;">อนุมัติ</button><button class="btn-red" onclick="approveReq('TimeRequests', '${i[0]}', 'Rejected')" style="padding:6px 10px; font-size:12px;">ปฏิเสธ</button>`;
-                else btn = `<span class="status-${status}">${status === 'Approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}</span>`;
+                if(status === 'Pending') btn = `<button class="btn-green" onclick="approveReq('TimeRequests', '${i[0]}', 'Approved')" style="padding:6px 10px; font-size:12px; margin-right:5px;">อนุมัติ</button><button class="btn-red" onclick="approveReq('TimeRequests', '${i[0]}', 'Rejected')" style="padding:6px 10px; font-size:12px;">ปฏิเสธ</button>`; else btn = `<span class="status-${status}">${status === 'Approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}</span>`;
                 tbTime.innerHTML += `<tr><td><b style="color:var(--primary);">${i[2]}</b><br><span style="font-size:11px; color:var(--gray)">${i[1].split(' ')[0]}</span></td><td>${i[3]}</td><td>${i[4]}</td><td>${btn}</td></tr>`;
             });
             let tbLeave = document.getElementById('tb-req-leave'); tbLeave.innerHTML = '';
             d.leave.forEach(i => {
                 let status = currentRole === 'hr' ? i[10] : i[9]; let btn = '';
-                if(status === 'Pending') btn = `<button class="btn-green" onclick="approveReq('Leaves', '${i[0]}', 'Approved')" style="padding:6px 10px; font-size:12px; margin-right:5px;">อนุมัติ</button><button class="btn-red" onclick="approveReq('Leaves', '${i[0]}', 'Rejected')" style="padding:6px 10px; font-size:12px;">ปฏิเสธ</button>`;
-                else btn = `<span class="status-${status}">${status === 'Approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}</span>`;
+                if(status === 'Pending') btn = `<button class="btn-green" onclick="approveReq('Leaves', '${i[0]}', 'Approved')" style="padding:6px 10px; font-size:12px; margin-right:5px;">อนุมัติ</button><button class="btn-red" onclick="approveReq('Leaves', '${i[0]}', 'Rejected')" style="padding:6px 10px; font-size:12px;">ปฏิเสธ</button>`; else btn = `<span class="status-${status}">${status === 'Approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}</span>`;
                 tbLeave.innerHTML += `<tr><td><b style="color:var(--primary);">${i[2]}</b><br><span style="font-size:11px; color:var(--gray)">${i[1].split(' ')[0]}</span></td><td>${i[3]}</td><td>${i[4]} ถึง ${i[5]}<br><span style="font-size:11px; color:var(--gray)">(${i[6]} วัน)</span></td><td>${btn}</td></tr>`;
             });
         });
     }
 
     function approveReq(s, id, st) { if(!confirm(`ยืนยันการให้สถานะ ${st}?`)) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole}) }).then(() => loadRequests()); }
-    
     function loadUsers() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { let tb = document.getElementById('tb-users'); tb.innerHTML = ''; d.data.forEach(i => { if(i[0]) { let actionBtns = currentRole === 'hr' ? `<button class="btn-yellow" onclick="openEditUser('${i[0]}', '${i[1]}', '${i[2]}')" style="padding:6px 12px; font-size:12px; margin-right:5px;">แก้ไข</button><button class="btn-outline" onclick="deleteUser('${i[0]}')" style="padding:6px 12px; font-size:12px;">ลบ</button>` : '-'; tb.innerHTML += `<tr><td style="font-weight:500;">${i[0]}</td><td style="color:var(--gray);">***</td><td><span style="background:var(--light-gray); padding:4px 8px; border-radius:4px; font-size:12px;">${i[2]}</span></td><td>${actionBtns}</td></tr>`; }}); }); }
     function addUser() { let u = document.getElementById('newU').value, p = document.getElementById('newP').value, r = document.getElementById('newR').value; if(!u || !p) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_user', new_user: u, new_pass: p, new_role: r}) }).then(() => { document.getElementById('newU').value=''; document.getElementById('newP').value=''; loadUsers(); }); }
     function openEditUser(u, p, r) { document.getElementById('editOldUserSpan').innerText = u; document.getElementById('editOldUser').value = u; document.getElementById('editU').value = u; document.getElementById('editP').value = p; document.getElementById('editR').value = r; document.getElementById('editUserDiv').classList.remove('hidden'); window.scrollTo(0, document.getElementById('editUserDiv').offsetTop); }
     function cancelEditUser() { document.getElementById('editUserDiv').classList.add('hidden'); }
     function saveEditUser() { let oldU = document.getElementById('editOldUser').value, newU = document.getElementById('editU').value, newP = document.getElementById('editP').value, newR = document.getElementById('editR').value; if(!newU || !newP) return alert("กรุณากรอกข้อมูลให้ครบ"); fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'edit_user', old_user: oldU, new_user: newU, new_pass: newP, new_role: newR}) }).then(() => { loadUsers(); cancelEditUser(); }); }
     function deleteUser(u) { if(confirm("ลบพนักงาน: " + u + " ใช่หรือไม่?")) fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_user', del_user: u}) }).then(() => loadUsers()); }
-
     function loadHolidaysUI() { let tb = document.getElementById('tb-holidays'); tb.innerHTML = ''; allHolidays.forEach(h => { tb.innerHTML += `<tr><td>${h.date}</td><td><b style="color:var(--primary);">${h.name}</b></td><td><button class="btn-outline" onclick="deleteHoliday('${h.date}')" style="padding:4px 8px; font-size:11px;">ลบ</button></td></tr>`; }); }
-    
-    // แก้บั๊กส่งค่าวันที่ของวันหยุด
-    function addHoliday() { 
-        let d = document.getElementById('holDate').value; 
-        let n = document.getElementById('holName').value; 
-        if(!d || !n) return alert('โปรดกรอกข้อมูลให้ครบถ้วน'); 
-        let ds = d.split('-'); 
-        let thDate = ds[2] + '/' + ds[1] + '/' + ds[0]; 
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_holiday', date: thDate, name: n}) })
-        .then(r=>r.json()).then(res => { 
-            if(res.status === 'success') {
-                document.getElementById('holDate').value = ''; 
-                document.getElementById('holName').value = ''; 
-                loadConfigAndHolidays(() => loadHolidaysUI()); 
-            }
-        }); 
-    }
-    
+    function addHoliday() { let d = document.getElementById('holDate').value; let n = document.getElementById('holName').value; if(!d || !n) return alert('โปรดกรอกข้อมูลให้ครบถ้วน'); let ds = d.split('-'); let thDate = ds[2] + '/' + ds[1] + '/' + ds[0]; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_holiday', date: thDate, name: n}) }).then(r=>r.json()).then(res => { if(res.status === 'success') { document.getElementById('holDate').value = ''; document.getElementById('holName').value = ''; loadConfigAndHolidays(() => loadHolidaysUI()); }}); }
     function deleteHoliday(dateStr) { if(!confirm("ลบวันหยุดนี้?")) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_holiday', date: dateStr}) }).then(() => { loadConfigAndHolidays(() => loadHolidaysUI()); }); }
-
     function loadLocations() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_locations'}) }).then(r=>r.json()).then(d => { let tb = document.getElementById('tb-locations'); tb.innerHTML = ''; d.data.forEach(loc => { tb.innerHTML += `<tr><td><b>${loc.name}</b></td><td>${loc.radius}</td><td><button class="btn-yellow" onclick="openEditLoc('${loc.name}', '${loc.lat}', '${loc.lon}', '${loc.radius}')" style="padding:6px 12px; font-size:12px;">แก้ไข</button> <button class="btn-outline" onclick="deleteLocation('${loc.name}')" style="padding:6px 12px; font-size:12px;">ลบ</button></td></tr>`; }); if(d.data.length > 0 && !hrMapObj) renderHrMap(parseFloat(d.data[0].lat), parseFloat(d.data[0].lon), 100); }); }
     function searchLocation() { let q = document.getElementById('searchPlaceInput').value; if(!q) return; fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q)).then(r => r.json()).then(data => { if(data.length > 0) { renderHrMap(parseFloat(data[0].lat), parseFloat(data[0].lon), parseFloat(document.getElementById('setRad').value) || 100); document.getElementById('setLat').value = data[0].lat; document.getElementById('setLon').value = data[0].lon; } }); }
-    function saveLocation() { let n = document.getElementById('setLocName').value, lt = document.getElementById('setLat').value, ln = document.getElementById('setLon').value, r = document.getElementById('setRad').value; if(!n || !lt || !ln || !r) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_location', name: n, lat: lt, lon: ln, radius: r}) }).then(() => { cancelEditLoc(); loadLocations(); }); }
+    function saveLocation() { let oldN = document.getElementById('editOldLocName').value; let n = document.getElementById('setLocName').value, lt = document.getElementById('setLat').value, ln = document.getElementById('setLon').value, r = document.getElementById('setRad').value; if(!n || !lt || !ln || !r) return; fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'add_location', name: n, lat: lt, lon: ln, radius: r}) }).then(() => { cancelEditLoc(); loadLocations(); }); }
     function openEditLoc(name, lat, lon, radius) { document.getElementById('locFormTitle').innerText = "✏️ แก้ไขสถานที่: " + name; document.getElementById('editOldLocName').value = name; document.getElementById('setLocName').value = name; document.getElementById('setLat').value = lat; document.getElementById('setLon').value = lon; document.getElementById('setRad').value = radius; document.getElementById('btnSaveLoc').innerText = "💾 บันทึกการแก้ไข"; document.getElementById('btnCancelLoc').classList.remove('hidden'); renderHrMap(parseFloat(lat), parseFloat(lon), parseFloat(radius)); window.scrollTo(0, document.getElementById('tab-settings').offsetTop); }
     function cancelEditLoc() { document.getElementById('locFormTitle').innerText = "📍 ตั้งค่าจุดเช็คอินใหม่"; document.getElementById('editOldLocName').value = ''; document.getElementById('setLocName').value = ''; document.getElementById('setLat').value = ''; document.getElementById('setLon').value = ''; document.getElementById('setRad').value = ''; document.getElementById('btnSaveLoc').innerText = "💾 บันทึกสถานที่"; document.getElementById('btnCancelLoc').classList.add('hidden'); }
     function deleteLocation(name) { if(!confirm("ลบสถานที่?")) fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'delete_location', name: name}) }).then(() => loadLocations()); }
