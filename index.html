@@ -328,7 +328,7 @@
                 <div class="table-responsive mt-3"><table><thead><tr><th>วันที่</th><th>ชื่อวันหยุด</th><th>ลบ</th></tr></thead><tbody id="tb-holidays"></tbody></table></div>
             </div>
             <hr style="margin:20px 0; border:1px solid #e5e7eb;">
-            <h3 style="margin-top:0; font-size: 16px;">📍 ตั้งค่าจุดเช็คอิน</h3>
+            <h3 id="locFormTitle" style="margin-top:0; font-size: 16px;">📍 ตั้งค่าจุดเช็คอิน</h3>
             <div class="edit-box" style="margin-top:0;">
                 <div class="filter-row">
                     <input type="text" id="searchPlaceInput" placeholder="พิมพ์ชื่อสถานที่เพื่อค้นหาบนแผนที่...">
@@ -718,7 +718,9 @@
     }
     
     function openEditLoc(name, lat, lon, radius) { 
-        document.getElementById('locFormTitle').innerText = "✏️ แก้ไขสถานที่: " + name; 
+        let titleEl = document.getElementById('locFormTitle');
+        if (titleEl) titleEl.innerText = "✏️ แก้ไขสถานที่: " + name; 
+        
         document.getElementById('editOldLocName').value = name; 
         document.getElementById('setLocName').value = name; 
         document.getElementById('setLat').value = lat; 
@@ -731,7 +733,9 @@
     }
     
     function cancelEditLoc() { 
-        document.getElementById('locFormTitle').innerText = "📍 ตั้งค่าจุดเช็คอินใหม่"; 
+        let titleEl = document.getElementById('locFormTitle');
+        if (titleEl) titleEl.innerText = "📍 ตั้งค่าจุดเช็คอิน"; 
+        
         document.getElementById('editOldLocName').value = ''; 
         document.getElementById('setLocName').value = ''; 
         document.getElementById('setLat').value = ''; 
