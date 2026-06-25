@@ -197,6 +197,23 @@
                     <span class="cal-tag bg-purple" style="padding:4px 6px; width:auto;">วันหยุดพิเศษ</span>
                 </div>
             </div>
+            
+            <hr style="margin:20px 0; border:1px solid #e5e7eb;">
+            <h3 style="margin-top:0; color:var(--dark); font-size: 16px;">📋 ประวัติการลงเวลาล่าสุด</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วันที่ - เวลา</th>
+                            <th>สถานะ</th>
+                            <th>สถานที่</th>
+                            <th>รูปถ่าย</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-my-history-list">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
         <div id="emp-tab-request" class="hidden">
@@ -423,7 +440,7 @@
         
         if(savedUser && savedRole) {
             currentUser = savedUser; currentRole = savedRole; 
-            currentRealName = savedRealName || savedUser; // เซ็ตชื่อจริง
+            currentRealName = savedRealName || savedUser; 
             
             document.getElementById('loginSec').classList.add('hidden');
             document.getElementById('loadingOverlay').classList.remove('hidden'); 
@@ -448,7 +465,7 @@
 
                     if(currentRole === 'employee') {
                         document.getElementById('empSec').classList.remove('hidden'); 
-                        document.getElementById('empName').innerText = currentRealName; // แสดงชื่อจริง
+                        document.getElementById('empName').innerText = currentRealName; 
                         allLocations = d.locations || [];
                         refreshGPS(); startCamera();
                     } else {
@@ -461,7 +478,6 @@
                         renderDashboard(d.dashboard);
                         let sel = document.getElementById('hrCalUserSelect'); 
                         sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; 
-                        // ใช้ชื่อจริงสำหรับให้ HR เลือกดูปฏิทิน
                         if(d.users) d.users.forEach(u => { 
                             if(u[0]) {
                                 let displayName = u[3] ? u[3] : u[0];
@@ -482,10 +498,10 @@
         let body = new URLSearchParams({ action: 'login', username: document.getElementById('user').value, password: document.getElementById('pass').value });
         fetch(scriptURL, { method: 'POST', body: body }).then(r=>r.json()).then(d => {
             if(d.status === 'success') {
-                currentUser = d.username; currentRole = d.role; currentRealName = d.realname; // รับชื่อจริงมา
+                currentUser = d.username; currentRole = d.role; currentRealName = d.realname;
                 localStorage.setItem('work_checkin_user', currentUser); 
                 localStorage.setItem('work_checkin_role', currentRole);
-                localStorage.setItem('work_checkin_realname', currentRealName); // เซฟลงเครื่อง
+                localStorage.setItem('work_checkin_realname', currentRealName);
                 location.reload(); 
             } else { document.getElementById('loginMsg').innerText = d.message; }
         });
@@ -617,7 +633,6 @@
         document.getElementById('empMsg').innerHTML = '<span style="color:var(--primary); font-weight:500;">กำลังอัปโหลด...</span>';
         document.getElementById('btnIn').disabled = true; document.getElementById('btnOut').disabled = true; 
         let base64Img = captureImageWithWatermark();
-        // ส่งชื่อจริง (currentRealName) ไปแทน Username
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({ action: 'checkin', username: currentRealName, status: st, userLat: myLat, userLon: myLon, distance: Math.round(myDistance), locName: targetLocName, imageBase64: base64Img }) }).then(r=>r.json()).then(d => {
             if(d.status === 'success') { document.getElementById('empMsg').innerHTML = `<span style="color:var(--success); font-weight:600;">✅ ${d.message}</span>`; } else { document.getElementById('empMsg').innerHTML = `<span style="color:var(--danger); font-weight:600;">❌ ${d.message}</span>`; }
             document.getElementById('btnIn').disabled = false; document.getElementById('btnOut').disabled = false; 
@@ -629,7 +644,6 @@
 
     function submitRequest(type) {
         document.getElementById('reqMsg').innerText = "กำลังส่ง..."; let fileInput = type === 'time' ? document.getElementById('timeFile') : document.getElementById('leaveFile');
-        // ส่งชื่อจริง (currentRealName) ไปแทน Username
         let params = { action: 'submit_request', req_type: type, username: currentRealName };
         if(type === 'time') { params.edit_type = document.getElementById('timeEditType').value; params.edit_date = document.getElementById('timeEditDate').value; params.edit_time = document.getElementById('timeEditTime').value; params.reason = document.getElementById('timeReason').value; } 
         else { params.leave_type = document.getElementById('leaveType').value; params.start_date = document.getElementById('leaveStart').value; params.end_date = document.getElementById('leaveEnd').value; params.reason = document.getElementById('leaveReason').value; }
@@ -646,7 +660,6 @@
 
     function loadMyRequests() {
         let tb = document.getElementById('tb-my-reqs'); tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดสถานะ...</td></tr>';
-        // อิงตามชื่อจริง
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_requests', username: currentRealName}) }).then(r=>r.json()).then(d => {
             tb.innerHTML = '';
             if(d.time.length === 0 && d.leave.length === 0) { tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">ไม่มีประวัติการส่งคำขอ</td></tr>'; return; }
@@ -675,8 +688,55 @@
 
     function loadMyLogs() {
         document.getElementById('myCalendarContainer').innerHTML = '<p class="text-center">กำลังโหลดปฏิทิน...</p>';
-        // อิงตามชื่อจริง
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) }).then(r=>r.json()).then(d => { currentLogs = d.data; renderCalendar('myCalendarContainer', currentLogs, calDate, false); });
+        let tb = document.getElementById('tb-my-history-list');
+        if(tb) tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดประวัติ...</td></tr>';
+
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
+        .then(r=>r.json())
+        .then(d => { 
+            currentLogs = d.data; 
+            renderCalendar('myCalendarContainer', currentLogs, calDate, false); 
+            renderMyLogList();
+        });
+    }
+
+    function renderMyLogList() {
+        let tb = document.getElementById('tb-my-history-list');
+        if(!tb) return;
+        tb.innerHTML = '';
+        
+        if (!currentLogs || currentLogs.length === 0) {
+            tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">ยังไม่มีประวัติการลงเวลา</td></tr>';
+            return;
+        }
+
+        let logsToShow = currentLogs.slice(0, 30); 
+
+        logsToShow.forEach(log => {
+            let datetime = log[0]; 
+            let status = log[2]; 
+            let loc = log[6] || '-';
+            let imgUrl = log[7];
+            
+            let statusColor = status.includes('เข้า') ? 'var(--success)' : (status.includes('ลา') ? 'var(--warning)' : 'var(--danger)');
+            
+            let imgHtml = '-';
+            if (imgUrl && imgUrl.startsWith('http')) {
+                imgHtml = `<a href="${imgUrl}" target="_blank" style="text-decoration:none; background:#eef2f6; border:1px solid #d1d5db; padding:4px 10px; border-radius:6px; font-size:11px; color:var(--dark); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.05);">🖼️ ดูรูป</a>`;
+            }
+
+            let datePart = datetime.split(' ')[0] || '-';
+            let timePart = datetime.split(' ')[1] || '-';
+
+            tb.innerHTML += `
+                <tr>
+                    <td style="font-size:12px;"><b>${datePart}</b><br><span style="color:var(--gray);">${timePart}</span></td>
+                    <td style="color:${statusColor}; font-weight:600; font-size:13px;">${status}</td>
+                    <td style="font-size:12px;">${loc}</td>
+                    <td>${imgHtml}</td>
+                </tr>
+            `;
+        });
     }
 
     function changeMonth(offset, containerId, isHrView) {
@@ -770,7 +830,6 @@
         }); 
     }
     
-    // ดึงและแสดงชื่อจริงด้วย
     function loadUsers() { 
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { 
             let tb = document.getElementById('tb-users'); tb.innerHTML = ''; 
@@ -784,7 +843,6 @@
         }); 
     }
     
-    // บันทึกชื่อจริงด้วย
     function addUser() { 
         let u = document.getElementById('newU').value, p = document.getElementById('newP').value, r = document.getElementById('newR').value, rn = document.getElementById('newRealName').value; 
         if(!u || !p) return alert("กรุณากรอกข้อมูลให้ครบถ้วน"); 
@@ -793,7 +851,6 @@
         }); 
     }
     
-    // ดึงชื่อจริงขึ้นมาแก้
     function openEditUser(u, p, r, rn) { 
         document.getElementById('editOldUserSpan').innerText = u; 
         document.getElementById('editOldUser').value = u; 
@@ -830,7 +887,6 @@
             if(res.status === 'success') {
                 document.getElementById('holDate').value = ''; 
                 document.getElementById('holName').value = ''; 
-                // reload data here in real app, simplified for brevity
                 alert("เพิ่มวันหยุดสำเร็จ! โปรดรีเฟรชเพื่อดูอัปเดต");
             }
         }); 
