@@ -80,7 +80,7 @@
         .loader { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ================= สไตล์หน้าจอสำเร็จ (ใหม่) ================= */
+        /* ================= สไตล์หน้าจอสำเร็จ ================= */
         #successOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.97);
@@ -192,6 +192,7 @@
                     <span class="cal-tag bg-green" style="padding:4px 6px; width:auto;">ปกติ</span>
                     <span class="cal-tag bg-green" style="padding:4px 6px; width:auto;">ลืมเช็คอิน</span>
                     <span class="cal-tag bg-orange legend-late" style="padding:4px 6px; width:auto;">เข้าสาย</span>
+                    <span class="cal-tag" style="padding:4px 6px; width:auto; background-color: #3b82f6; color: white;">OT</span>
                     <span class="cal-tag bg-red" style="padding:4px 6px; width:auto;">ขาดงาน</span>
                     <span class="cal-tag bg-blue" style="padding:4px 6px; width:auto;">ลา</span>
                     <span class="cal-tag bg-purple" style="padding:4px 6px; width:auto;">วันหยุดพิเศษ</span>
@@ -239,7 +240,7 @@
             
             <div id="formLeave" class="edit-box hidden" style="background:#f3f4f6; border-color:#e5e7eb;">
                 <h3 style="color:#374151; margin-top:0; font-size: 16px;">🗓️ ขอลาหยุด</h3>
-                <select id="leaveType"><option value="ลากิจ">ลากิจ</option><option value="ลาป่วย">ลาป่วย</option><option value="ลาพักร้อน">ลาพักร้อน</option></select>
+                <select id="leaveType"><option value="ลากิจ">ลากิจ</option><option value="ลาป่วย">ลาพักร้อน</option></select>
                 <div class="flex-gap">
                     <div style="width:100%;"><label style="font-size:12px;">เริ่มวันที่:</label><input type="date" id="leaveStart"></div>
                     <div style="width:100%;"><label style="font-size:12px;">ถึงวันที่:</label><input type="date" id="leaveEnd"></div>
@@ -331,6 +332,7 @@
                     <span class="cal-tag bg-green" style="padding:4px 6px; width:auto;">ปกติ</span>
                     <span class="cal-tag bg-green" style="padding:4px 6px; width:auto;">ลืมเช็คอิน</span>
                     <span class="cal-tag bg-orange legend-late" style="padding:4px 6px; width:auto;">เข้าสาย</span>
+                    <span class="cal-tag" style="padding:4px 6px; width:auto; background-color: #3b82f6; color: white;">OT</span>
                     <span class="cal-tag bg-red" style="padding:4px 6px; width:auto;">ขาดงาน</span>
                     <span class="cal-tag bg-blue" style="padding:4px 6px; width:auto;">ลา</span>
                     <span class="cal-tag bg-purple" style="padding:4px 6px; width:auto;">วันหยุดบริษัท</span>
@@ -822,6 +824,7 @@
         else { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(containerId, currentLogs, calDate, false); }
     }
 
+    // แก้ไขฟังก์ชัน renderCalendar (ระบบ OT)
     function renderCalendar(containerId, logs, dateObj, isHrView) {
         let container = document.getElementById(containerId); let month = dateObj.getMonth(); let year = dateObj.getFullYear();
         let monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
@@ -834,15 +837,36 @@
         for(let d=1; d<=daysInMonth; d++) {
             let loopDate = new Date(year, month, d); let dateStr = `${String(d).padStart(2,'0')}/${String(month+1).padStart(2,'0')}/${year}`;
             let dayLogs = logs.filter(l => l[0] && l[0].split(' ')[0] === dateStr);
-            let hasCheckIn = false, isLate = false, hasLeave = false, isForgotCheckIn = false, leaveLabel = 'ลางาน'; 
+            
+            let hasCheckIn = false, hasLeave = false, leaveLabel = 'ลางาน'; 
             let isHoliday = allHolidays.find(h => h.date === dateStr); let isWeekend = (loopDate.getDay() === 0);
             
-            dayLogs.forEach(l => { 
+            let checkInTagsHTML = ''; // ตัวแปรเก็บ Tag การเข้างานที่อาจมีหลายรอบในวันเดียว
+            
+            // เรียงลำดับเวลาเข้างานจากเช้าไปเย็น เพื่อให้ "ปกติ" อยู่ด้านบน และ "OT" อยู่ด้านล่าง
+            let sortedDayLogs = [...dayLogs].sort((a, b) => a[0].localeCompare(b[0]));
+
+            sortedDayLogs.forEach(l => { 
                 if(l[2].includes('ลา')) { hasLeave = true; leaveLabel = l[2]; } 
                 if(l[2].includes('เข้างาน')) { 
                     hasCheckIn = true; 
-                    if (l[2].includes('ลืมเช็คอิน')) { isForgotCheckIn = true; } 
-                    else if(l[0].split(' ')[1] > workConfig.start + ":00") { isLate = true; }
+                    let checkInTime = l[0].split(' ')[1]; // ดึงเฉพาะเวลา เช่น "08:20:00" หรือ "17:30:00"
+                    
+                    if (l[2].includes('ลืมเช็คอิน')) { 
+                        if (!checkInTagsHTML.includes('ปกติ(ลืม)')) checkInTagsHTML += `<div class="cal-tag bg-green">ปกติ(ลืม)</div>`;
+                    } 
+                    else if (checkInTime >= "17:00:00") {
+                        // เข้างานหลัง 17:00 (5 โมงเย็น) ให้แสดง OT ทันที โดยไม่ขึ้นสาย
+                        if (!checkInTagsHTML.includes('OT')) checkInTagsHTML += `<div class="cal-tag" style="background-color: #3b82f6;">OT</div>`;
+                    }
+                    else if(checkInTime > workConfig.start + ":00") { 
+                        // เข้างานสาย (เข้าหลังเวลาเริ่มงาน แต่เข้าก่อน 17:00)
+                        if (!checkInTagsHTML.includes('สาย')) checkInTagsHTML += `<div class="cal-tag bg-orange">สาย</div>`; 
+                    } 
+                    else {
+                        // เข้างานปกติ
+                        if (!checkInTagsHTML.includes('>ปกติ<')) checkInTagsHTML += `<div class="cal-tag bg-green">ปกติ</div>`;
+                    }
                 } 
             });
             
@@ -850,11 +874,16 @@
             if(isHoliday) tags += `<div class="cal-tag bg-purple">${isHoliday.name}</div>`;
             if(isWeekend && !hasCheckIn && !hasLeave) tags += `<div class="cal-tag bg-gray">วันหยุด</div>`;
             
-            if(hasLeave) { tags += `<div class="cal-tag bg-blue">${leaveLabel}</div>`; } 
+            if(hasLeave) { 
+                tags += `<div class="cal-tag bg-blue">${leaveLabel}</div>`; 
+            } 
             else if(hasCheckIn) { 
-                if(isForgotCheckIn) tags += `<div class="cal-tag bg-green">ปกติ(ลืม)</div>`;
-                else if(isLate) tags += `<div class="cal-tag bg-orange">สาย</div>`; else tags += `<div class="cal-tag bg-green">ปกติ</div>`; 
-            } else if(!isWeekend && !isHoliday && loopDate < today) { tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; }
+                // นำ Tag ที่สะสมไว้ทั้งหมดมาแสดง
+                tags += checkInTagsHTML;
+            } 
+            else if(!isWeekend && !isHoliday && loopDate < today) { 
+                tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; 
+            }
             
             html += `<div class="cal-day"><div class="cal-date">${d}</div>${tags}</div>`;
         }
