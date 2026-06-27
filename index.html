@@ -70,6 +70,8 @@
         .cal-head { text-align: center; font-size: 12px; font-weight: 600; color: var(--gray); padding-bottom: 5px; }
         .cal-day { border: 1px solid #e5e7eb; border-radius: 4px; min-height: 60px; padding: 2px; background: white; display: flex; flex-direction: column; overflow: hidden;}
         .cal-day.empty { background: transparent; border: none; }
+        .hr-clickable { cursor: pointer; transition: all 0.2s; }
+        .hr-clickable:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10; }
         .cal-date { font-size: 12px; font-weight: bold; color: var(--dark); margin-bottom: 2px; text-align: center;}
         .cal-tag { font-size: 9px; padding: 2px 1px; border-radius: 3px; color: white; text-align: center; margin-bottom: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; display: block; line-height: 1.2; }
         
@@ -317,6 +319,12 @@
             <button onclick="loadLogs()" class="btn-primary mb-3">รีเฟรชข้อมูล</button>
             <div class="table-responsive">
                 <table><thead><tr><th>เวลา</th><th>ชื่อพนักงาน</th><th>สถานะ</th><th>สถานที่</th><th>รูปถ่าย</th></tr></thead><tbody id="tb-logs"></tbody></table>
+                
+                <div id="hrMainLogsPagination" class="hidden" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <button class="btn-grey" id="btnPrevMainLogs" onclick="changeMainLogsPage(-1)" style="width: auto; padding: 6px 15px;">◀ ก่อนหน้า</button>
+                    <span id="mainLogsPageInfo" style="font-size: 13px; font-weight: 600; color: var(--dark);">หน้า 1 / 1</span>
+                    <button class="btn-grey" id="btnNextMainLogs" onclick="changeMainLogsPage(1)" style="width: auto; padding: 6px 15px;">ถัดไป ▶</button>
+                </div>
             </div>
         </div>
 
@@ -459,9 +467,14 @@
     // ตัวแปรสำหรับ Pagination
     let currentEmpPage = 1;
     const empItemsPerPage = 50;
+    
     let currentHrPage = 1;
     const hrItemsPerPage = 50;
     let hrFilteredLogsForPagination = [];
+
+    // เพิ่มตัวแปรสำหรับ Pagination หน้าประวัติ
+    let currentMainLogsPage = 1;
+    const mainLogsPerPage = 50;
 
     // ================= ระบบนาฬิกา Real-time =================
     function updateClocks() {
@@ -824,7 +837,6 @@
         else { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(containerId, currentLogs, calDate, false); }
     }
 
-    // แก้ไขฟังก์ชัน renderCalendar (ระบบ OT)
     function renderCalendar(containerId, logs, dateObj, isHrView) {
         let container = document.getElementById(containerId); let month = dateObj.getMonth(); let year = dateObj.getFullYear();
         let monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
@@ -840,31 +852,26 @@
             
             let hasCheckIn = false, hasLeave = false, leaveLabel = 'ลางาน'; 
             let isHoliday = allHolidays.find(h => h.date === dateStr); let isWeekend = (loopDate.getDay() === 0);
+            let checkInTagsHTML = ''; 
             
-            let checkInTagsHTML = ''; // ตัวแปรเก็บ Tag การเข้างานที่อาจมีหลายรอบในวันเดียว
-            
-            // เรียงลำดับเวลาเข้างานจากเช้าไปเย็น เพื่อให้ "ปกติ" อยู่ด้านบน และ "OT" อยู่ด้านล่าง
             let sortedDayLogs = [...dayLogs].sort((a, b) => a[0].localeCompare(b[0]));
 
             sortedDayLogs.forEach(l => { 
                 if(l[2].includes('ลา')) { hasLeave = true; leaveLabel = l[2]; } 
                 if(l[2].includes('เข้างาน')) { 
                     hasCheckIn = true; 
-                    let checkInTime = l[0].split(' ')[1]; // ดึงเฉพาะเวลา เช่น "08:20:00" หรือ "17:30:00"
+                    let checkInTime = l[0].split(' ')[1]; 
                     
                     if (l[2].includes('ลืมเช็คอิน')) { 
                         if (!checkInTagsHTML.includes('ปกติ(ลืม)')) checkInTagsHTML += `<div class="cal-tag bg-green">ปกติ(ลืม)</div>`;
                     } 
                     else if (checkInTime >= "17:00:00") {
-                        // เข้างานหลัง 17:00 (5 โมงเย็น) ให้แสดง OT ทันที โดยไม่ขึ้นสาย
                         if (!checkInTagsHTML.includes('OT')) checkInTagsHTML += `<div class="cal-tag" style="background-color: #3b82f6;">OT</div>`;
                     }
                     else if(checkInTime > workConfig.start + ":00") { 
-                        // เข้างานสาย (เข้าหลังเวลาเริ่มงาน แต่เข้าก่อน 17:00)
                         if (!checkInTagsHTML.includes('สาย')) checkInTagsHTML += `<div class="cal-tag bg-orange">สาย</div>`; 
                     } 
                     else {
-                        // เข้างานปกติ
                         if (!checkInTagsHTML.includes('>ปกติ<')) checkInTagsHTML += `<div class="cal-tag bg-green">ปกติ</div>`;
                     }
                 } 
@@ -874,20 +881,23 @@
             if(isHoliday) tags += `<div class="cal-tag bg-purple">${isHoliday.name}</div>`;
             if(isWeekend && !hasCheckIn && !hasLeave) tags += `<div class="cal-tag bg-gray">วันหยุด</div>`;
             
-            if(hasLeave) { 
-                tags += `<div class="cal-tag bg-blue">${leaveLabel}</div>`; 
-            } 
-            else if(hasCheckIn) { 
-                // นำ Tag ที่สะสมไว้ทั้งหมดมาแสดง
-                tags += checkInTagsHTML;
-            } 
-            else if(!isWeekend && !isHoliday && loopDate < today) { 
-                tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; 
-            }
+            if(hasLeave) { tags += `<div class="cal-tag bg-blue">${leaveLabel}</div>`; } 
+            else if(hasCheckIn) { tags += checkInTagsHTML; } 
+            else if(!isWeekend && !isHoliday && loopDate < today) { tags += `<div class="cal-tag bg-red">ขาดงาน</div>`; }
             
-            html += `<div class="cal-day"><div class="cal-date">${d}</div>${tags}</div>`;
+            let clickAttr = isHrView ? `onclick="filterHrLogByDate('${dateStr}')" class="cal-day hr-clickable" title="คลิกเพื่อดูประวัติของวันที่ ${dateStr}"` : `class="cal-day"`;
+            html += `<div ${clickAttr}><div class="cal-date">${d}</div>${tags}</div>`;
         }
         html += `</div>`; container.innerHTML = html;
+    }
+
+    function filterHrLogByDate(dateStr) {
+        let searchInput = document.getElementById('hrSearchLogInput');
+        if(searchInput) {
+            searchInput.value = dateStr;
+            filterHrLogList();
+            searchInput.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
     }
 
     // --- ส่วนของ HR / Supervisor ---
@@ -899,14 +909,12 @@
 
     function loadLogs() {
         let tb = document.getElementById('tb-logs'); 
-        
         let cachedLogs = localStorage.getItem('cached_hr_logs');
+        
         if (cachedLogs) {
             hrAllLogs = JSON.parse(cachedLogs);
-            renderSimpleLogTable(hrAllLogs, tb);
-            let tr = document.createElement('tr');
-            tr.innerHTML = '<td colspan="5" class="text-center" style="font-size:11px; color:var(--warning);">🔄 กำลังซิงค์ข้อมูลล่าสุด...</td>';
-            tb.prepend(tr);
+            currentMainLogsPage = 1;
+            renderPaginatedMainLogs();
         } else {
             tb.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
         }
@@ -916,7 +924,8 @@
         .then(d => {
             hrAllLogs = d.data; 
             localStorage.setItem('cached_hr_logs', JSON.stringify(hrAllLogs));
-            renderSimpleLogTable(hrAllLogs, tb);
+            currentMainLogsPage = 1;
+            renderPaginatedMainLogs();
             
             if (!document.getElementById('tab-hrCalendar').classList.contains('hidden')) {
                 filterHrLogList();
@@ -924,13 +933,40 @@
         });
     }
 
-    function renderSimpleLogTable(data, tbElement) {
-        tbElement.innerHTML = '';
-        data.forEach(i => { 
+    function renderPaginatedMainLogs() {
+        let tb = document.getElementById('tb-logs');
+        tb.innerHTML = '';
+        
+        if(!hrAllLogs || hrAllLogs.length === 0) {
+            tb.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--gray);">ไม่มีข้อมูลประวัติ</td></tr>';
+            document.getElementById('hrMainLogsPagination').classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('hrMainLogsPagination').classList.remove('hidden');
+
+        let totalPages = Math.ceil(hrAllLogs.length / mainLogsPerPage);
+        if (currentMainLogsPage > totalPages) currentMainLogsPage = totalPages;
+        if (currentMainLogsPage < 1) currentMainLogsPage = 1;
+
+        let startIdx = (currentMainLogsPage - 1) * mainLogsPerPage;
+        let endIdx = startIdx + mainLogsPerPage;
+        let logsToShow = hrAllLogs.slice(startIdx, endIdx); 
+
+        logsToShow.forEach(i => { 
             let c = i[2].includes('เข้า') ? 'var(--success)' : (i[2].includes('ลา') ? 'var(--warning)' : 'var(--danger)'); 
             let imgLink = i[7] && i[7].startsWith('http') ? `<a href="${i[7]}" target="_blank" style="text-decoration:none;">🖼️</a>` : '-'; 
-            tbElement.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${i[2]}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; 
+            tb.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${i[2]}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; 
         });
+
+        document.getElementById('mainLogsPageInfo').innerText = `หน้า ${currentMainLogsPage} / ${totalPages}`;
+        document.getElementById('btnPrevMainLogs').disabled = (currentMainLogsPage === 1);
+        document.getElementById('btnNextMainLogs').disabled = (currentMainLogsPage === totalPages);
+    }
+
+    function changeMainLogsPage(offset) {
+        currentMainLogsPage += offset;
+        renderPaginatedMainLogs();
     }
 
     function fetchUsersForDropdown() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { let sel = document.getElementById('hrCalUserSelect'); sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; d.data.forEach(u => { if(u[0]) { let name = u[3] ? u[3] : u[0]; sel.innerHTML += `<option value="${name}">${name}</option>`; } }); }); }
