@@ -168,6 +168,7 @@
             </div>
             
             <div class="mt-3 text-center">
+                <!-- ปรับปุ่มให้เปลี่ยนฟังก์ชันด้วย JavaScript แบบ Dynamic -->
                 <div class="flex-gap" style="justify-content: center;">
                     <button id="btnIn" class="btn-green hidden" style="flex: 1; padding: 15px; font-size: 16px; box-shadow: 0 4px 6px rgba(16,185,129,0.3); transition: all 0.3s;">▶️ เข้างาน</button>
                     <button id="btnOut" class="btn-red hidden" style="flex: 1; padding: 15px; font-size: 16px; box-shadow: 0 4px 6px rgba(239,68,68,0.3); transition: all 0.3s;">⏹️ ออกงาน</button>
@@ -481,6 +482,7 @@
         if(document.getElementById('mainClockEmp')) document.getElementById('mainClockEmp').innerText = timeStr;
         if(document.getElementById('headerClockAdmin')) document.getElementById('headerClockAdmin').innerText = timeStr;
         
+        // อัปเดตสถานะปุ่มตลอดเวลาแบบเรียลไทม์ (ถ้าอยู่หน้าลงเวลา)
         if (currentRole === 'employee' && !document.getElementById('emp-tab-checkin').classList.contains('hidden')) {
             if (myLat !== 0) updateCheckInButtons();
         }
@@ -523,6 +525,7 @@
                         document.getElementById('empName').innerText = currentRealName; 
                         allLocations = d.locations || [];
                         
+                        // ✅ ดึงข้อมูลประวัติทันทีเพื่อเช็คสถานะปุ่มให้ถูกต้อง
                         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
                         .then(r=>r.json()).then(logData => {
                             currentLogs = logData.data || [];
@@ -660,26 +663,31 @@
         if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
     }
 
+    // ✅ ฟังก์ชันใหม่ ควบคุมตรรกะการเปลี่ยนปุ่ม เข้า/ออก/OT
     function updateCheckInButtons() {
         let now = new Date();
-        let isAfter5 = now.getHours() >= 17;
+        let isAfter5 = now.getHours() >= 17; // หลัง 17:00 ถือเป็นช่วง OT
         
+        // หากลุ่ม Log ของวันนี้
         let todayPrefix = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth()+1)).slice(-2) + '/' + now.getFullYear();
         let todayLogs = currentLogs.filter(l => l[0].startsWith(todayPrefix));
         
-        let hasIn = todayLogs.some(l => l[2].includes('เข้างาน') && !l[2].includes('OT') && l[0].split(' ')[1] < '17:00:00');
-        let hasOut = todayLogs.some(l => l[2].includes('ออกงาน') && !l[2].includes('OT') && l[0].split(' ')[1] < '17:00:00');
-        let hasOtIn = todayLogs.some(l => l[2] === 'เข้างาน(OT)' || (l[2].includes('เข้างาน') && l[0].split(' ')[1] >= '17:00:00'));
-        let hasOtOut = todayLogs.some(l => l[2] === 'ออกงาน(OT)' || (l[2].includes('ออกงาน') && l[0].split(' ')[1] >= '17:00:00' && hasOtIn));
+        let hasIn = todayLogs.some(l => l[2].includes('เข้างาน') && !l[2].includes('OT'));
+        let hasOut = todayLogs.some(l => l[2].includes('ออกงาน') && !l[2].includes('OT'));
+        let hasOtIn = todayLogs.some(l => l[2] === 'เข้างาน(OT)');
+        let hasOtOut = todayLogs.some(l => l[2] === 'ออกงาน(OT)');
         
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
         
+        // ล้างสไตล์
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
         
         if (isAfter5) {
-            if (!hasOut && hasIn) {
+            // ================== หลัง 17:00 (ระบบ OT) ==================
+            if (!hasOut) {
+                // กรณียังไม่ได้กด ออกงาน(ปกติ)
                 btnIn.innerText = "▶️ เข้างาน (OT)";
                 btnIn.onclick = () => alert('⚠️ กรุณากด "ออกงาน" ปกติก่อน ถึงจะสามารถกดเข้า OT ได้');
                 btnIn.style.opacity = "0.5";
@@ -687,6 +695,7 @@
                 btnOut.innerText = "⏹️ ออกงาน";
                 btnOut.onclick = () => checkIn('ออกงาน');
             } else {
+                // กดออกงาน(ปกติ)แล้ว พร้อมเข้าสู่ระบบ OT
                 btnIn.innerText = "▶️ เข้างาน (OT)";
                 if (hasOtIn) {
                     btnIn.onclick = () => alert('✅ คุณเข้างาน OT ไปแล้ว');
@@ -707,6 +716,7 @@
                 }
             }
         } else {
+            // ================== ก่อน 17:00 (ระบบปกติ) ==================
             btnIn.innerText = "▶️ เข้างาน";
             if (hasIn) {
                 btnIn.onclick = () => alert('✅ คุณเข้างานไปแล้ว');
@@ -736,7 +746,10 @@
             targetLocName = insideLoc.name; myDistance = closestDist;
             document.getElementById('empLocName').innerText = targetLocName; document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--success);">อยู่ในพื้นที่ (ห่าง ${Math.round(myDistance)} ม.)</span>`;
             document.getElementById('btnIn').classList.remove('hidden'); document.getElementById('btnOut').classList.remove('hidden');
+            
+            // ✅ เรียกใช้อัปเดตสถานะปุ่ม
             updateCheckInButtons();
+            
             document.getElementById('cameraDiv').classList.remove('hidden'); 
         } else {
             myDistance = closestDist; targetLocName = closestLoc ? closestLoc.name : '-';
@@ -772,6 +785,7 @@
                 document.getElementById('successOverlayLoc').innerText = "📍 " + targetLocName;
                 document.getElementById('successOverlay').classList.remove('hidden');
                 
+                // ✅ โหลดประวัติใหม่ เพื่ออัปเดตระบบล็อคปุ่มโดยไม่ต้องรีเฟรชหน้า
                 fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
                 .then(r=>r.json())
                 .then(logData => { 
@@ -882,29 +896,21 @@
             let loc = log[6] || '-';
             let imgUrl = log[7];
             
-            let datePart = datetime.split(' ')[0] || '-';
-            let timePart = datetime.split(' ')[1] || '-';
-            
-            let displayStatus = status;
             let statusColor = status.includes('เข้า') ? 'var(--success)' : (status.includes('ลา') ? 'var(--warning)' : 'var(--danger)');
-            
-            // ✅ ดักข้อมูลเก่าให้เป็น OT ทันทีถ้าเวลาเกิน 17:00
-            if (timePart >= '17:00:00' && (status === 'เข้างาน' || status === 'ออกงาน')) {
-                displayStatus = status === 'เข้างาน' ? 'เข้างาน(OT)' : 'ออกงาน(OT)';
-                statusColor = '#3b82f6';
-            } else if (status.includes('OT')) {
-                statusColor = '#3b82f6';
-            }
+            if (status.includes('OT')) statusColor = '#3b82f6';
             
             let imgHtml = '-';
             if (imgUrl && imgUrl.startsWith('http')) {
                 imgHtml = `<a href="${imgUrl}" target="_blank" style="text-decoration:none; background:#eef2f6; border:1px solid #d1d5db; padding:4px 10px; border-radius:6px; font-size:11px; color:var(--dark); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.05);">🖼️ ดูรูป</a>`;
             }
 
+            let datePart = datetime.split(' ')[0] || '-';
+            let timePart = datetime.split(' ')[1] || '-';
+
             tb.innerHTML += `
                 <tr>
                     <td style="font-size:12px;"><b>${datePart}</b><br><span style="color:var(--gray);">${timePart}</span></td>
-                    <td style="color:${statusColor}; font-weight:600; font-size:13px;">${displayStatus}</td>
+                    <td style="color:${statusColor}; font-weight:600; font-size:13px;">${status}</td>
                     <td style="font-size:12px;">${loc}</td>
                     <td>${imgHtml}</td>
                 </tr>
@@ -926,7 +932,6 @@
         else { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(containerId, currentLogs, calDate, false); }
     }
 
-    // 📌 รวบฟังก์ชันปฏิทินที่แก้ไขแล้วไว้ที่เดียว เพื่อให้อ่านประวัติเก่าเป็น OT ได้ถูกต้อง
     function renderCalendar(containerId, logs, dateObj, isHrView) {
         let container = document.getElementById(containerId); let month = dateObj.getMonth(); let year = dateObj.getFullYear();
         let monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
@@ -946,20 +951,19 @@
             
             let sortedDayLogs = [...dayLogs].sort((a, b) => a[0].localeCompare(b[0]));
 
+            // ✅ ปรับเงื่อนไขการวาด Tag ปฏิทินให้รองรับ OT ถูกต้องแม่นยำ
             sortedDayLogs.forEach(l => { 
                 if(l[2].includes('ลา')) { hasLeave = true; leaveLabel = l[2]; } 
                 if(l[2].includes('เข้างาน') || l[2].includes('ออกงาน')) { 
                     hasCheckIn = true; 
-                    let checkInTime = l[0].split(' ')[1] || "00:00:00"; 
                     
                     if (l[2].includes('ลืมเช็คอิน')) { 
                         if (!checkInTagsHTML.includes('ปกติ(ลืม)')) checkInTagsHTML += `<div class="cal-tag bg-green">ปกติ(ลืม)</div>`;
                     } 
-                    // ✅ แก้ไขเงื่อนไข: เช็คเวลาแทนข้อความ เพื่อให้ครอบคลุมข้อมูลเก่า
-                    else if (l[2].includes('OT') || (l[2].includes('เข้างาน') && checkInTime >= "17:00:00")) {
+                    else if (l[2].includes('OT')) {
                         if (!checkInTagsHTML.includes('OT')) checkInTagsHTML += `<div class="cal-tag" style="background-color: #3b82f6;">OT</div>`;
                     }
-                    else if(l[2].includes('เข้างาน') && checkInTime > workConfig.start + ":00") { 
+                    else if(l[2].includes('เข้างาน') && l[0].split(' ')[1] > workConfig.start + ":00") { 
                         if (!checkInTagsHTML.includes('สาย')) checkInTagsHTML += `<div class="cal-tag bg-orange">สาย</div>`; 
                     } 
                     else if(l[2].includes('เข้างาน')) {
@@ -1045,23 +1049,10 @@
         let logsToShow = hrAllLogs.slice(startIdx, endIdx); 
 
         logsToShow.forEach(i => { 
-            let datetime = i[0];
-            let status = i[2];
-            let timePart = datetime.split(' ')[1] || '-';
-            
-            let displayStatus = status;
-            let c = status.includes('เข้า') ? 'var(--success)' : (status.includes('ลา') ? 'var(--warning)' : 'var(--danger)'); 
-            
-            // ✅ ดักข้อมูลเก่าให้เป็น OT ทันทีถ้าเวลาเกิน 17:00
-            if (timePart >= '17:00:00' && (status === 'เข้างาน' || status === 'ออกงาน')) {
-                displayStatus = status === 'เข้างาน' ? 'เข้างาน(OT)' : 'ออกงาน(OT)';
-                c = '#3b82f6';
-            } else if (status.includes('OT')) {
-                c = '#3b82f6';
-            }
-            
+            let c = i[2].includes('เข้า') ? 'var(--success)' : (i[2].includes('ลา') ? 'var(--warning)' : 'var(--danger)'); 
+            if (i[2].includes('OT')) c = '#3b82f6';
             let imgLink = i[7] && i[7].startsWith('http') ? `<a href="${i[7]}" target="_blank" style="text-decoration:none;">🖼️</a>` : '-'; 
-            tb.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${displayStatus}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; 
+            tb.innerHTML += `<tr><td>${i[0]}</td><td style="font-weight:500;">${i[1]}</td><td style="color:${c}; font-weight:600;">${i[2]}</td><td>${i[6]||'-'}</td><td>${imgLink}</td></tr>`; 
         });
 
         document.getElementById('mainLogsPageInfo').innerText = `หน้า ${currentMainLogsPage} / ${totalPages}`;
@@ -1151,30 +1142,22 @@
             let loc = log[6] || '-';
             let imgUrl = log[7];
             
-            let datePart = datetime.split(' ')[0] || '-';
-            let timePart = datetime.split(' ')[1] || '-';
-            
-            let displayStatus = status;
             let statusColor = status.includes('เข้า') ? 'var(--success)' : (status.includes('ลา') ? 'var(--warning)' : 'var(--danger)');
-            
-            // ✅ ดักข้อมูลเก่าให้เป็น OT ทันทีถ้าเวลาเกิน 17:00
-            if (timePart >= '17:00:00' && (status === 'เข้างาน' || status === 'ออกงาน')) {
-                displayStatus = status === 'เข้างาน' ? 'เข้างาน(OT)' : 'ออกงาน(OT)';
-                statusColor = '#3b82f6';
-            } else if (status.includes('OT')) {
-                statusColor = '#3b82f6';
-            }
+            if (status.includes('OT')) statusColor = '#3b82f6';
 
             let imgHtml = '-';
             if (imgUrl && imgUrl.startsWith('http')) {
                 imgHtml = `<a href="${imgUrl}" target="_blank" style="text-decoration:none; background:#eef2f6; border:1px solid #d1d5db; padding:4px 10px; border-radius:6px; font-size:11px; color:var(--dark); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.05);">🖼️ ดูรูป</a>`;
             }
 
+            let datePart = datetime.split(' ')[0] || '-';
+            let timePart = datetime.split(' ')[1] || '-';
+
             tb.innerHTML += `
                 <tr>
                     <td style="font-size:12px;"><b>${datePart}</b><br><span style="color:var(--gray);">${timePart}</span></td>
                     <td style="font-size:13px; font-weight:500; color:var(--primary);">${empName}</td>
-                    <td style="color:${statusColor}; font-weight:600; font-size:13px;">${displayStatus}</td>
+                    <td style="color:${statusColor}; font-weight:600; font-size:13px;">${status}</td>
                     <td style="font-size:12px;">${loc}</td>
                     <td>${imgHtml}</td>
                 </tr>
