@@ -495,7 +495,23 @@
     setInterval(updateClocks, 1000);
     updateClocks(); 
 
-    // ✅ อัปเดตโหลดข้อมูลเบื้องหลัง & เปิดกล้อง/GPS ทันที
+    // ฟังก์ชันช่วยจัดการข้อมูลที่ดึงมา (แยกออกมาให้เรียกง่ายขึ้น)
+    function applyInitData(d) {
+        function formatTimeValue(tStr) {
+            if(!tStr) return "08:30";
+            let p = tStr.toString().split(':');
+            if(p.length >= 2) return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
+            return "08:30";
+        }
+        workConfig = d.config || { start: "08:30", end: "17:30" };
+        document.getElementById('confStart').value = formatTimeValue(workConfig.start);
+        document.getElementById('confEnd').value = formatTimeValue(workConfig.end);
+        document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${formatTimeValue(workConfig.start)})`);
+        allHolidays = d.holidays || [];
+        allLocations = d.locations || [];
+    }
+
+    // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
         let savedRole = localStorage.getItem('work_checkin_role');
@@ -505,65 +521,59 @@
             currentUser = savedUser; currentRole = savedRole; 
             currentRealName = savedRealName || savedUser; 
             
-            // 1. ปิดหน้า Login ทันที
             document.getElementById('loginSec').classList.add('hidden');
             
-            // 2. แสดงหน้า UI ของแอป พร้อมเปิดกล้องและ GPS ทันที (ไม่ต้องรอโหลดข้อมูล)
             if(currentRole === 'employee') {
                 document.getElementById('empSec').classList.remove('hidden'); 
                 document.getElementById('empName').innerText = currentRealName; 
                 
+                // 1. [ความเร็วสูงสุด] ดึงข้อมูลจาก Cache ในเครื่องมาใช้ก่อนทันที
+                let cachedInit = localStorage.getItem('kp_cached_init');
+                let cachedLogs = localStorage.getItem('kp_cached_logs');
+                
+                if (cachedInit) applyInitData(JSON.parse(cachedInit));
+                if (cachedLogs) currentLogs = JSON.parse(cachedLogs);
+
                 startCamera();
                 refreshGPS();
                 document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--warning);">กำลังเปิดกล้อง และดึงพิกัด GPS...</span>';
+                
+                // 2. ดึงข้อมูลจาก GAS พร้อมกัน 2 เส้นทางเบื้องหลัง (ไม่ต้องรอคิว)
+                Promise.all([
+                    fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) }).then(r=>r.json()),
+                    fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) }).then(r=>r.json())
+                ]).then(([initData, logData]) => {
+                    // อัปเดตข้อมูล Cache ใหม่ล่าสุด
+                    if(initData.status === 'success') {
+                        localStorage.setItem('kp_cached_init', JSON.stringify(initData));
+                        applyInitData(initData);
+                    }
+                    if(logData.data) {
+                        localStorage.setItem('kp_cached_logs', JSON.stringify(logData.data));
+                        currentLogs = logData.data;
+                    }
+                    
+                    // อัปเดต UI ด้วยข้อมูลใหม่
+                    if (myLat !== 0) {
+                        checkPosition({ coords: { latitude: myLat, longitude: myLon } });
+                    } else {
+                        updateCheckInButtons();
+                    }
+                }).catch(err => console.error("Background load error:", err));
+                
             } else {
+                // ฝั่ง HR Admin / Supervisor
                 document.getElementById('hrSec').classList.remove('hidden'); 
                 document.getElementById('roleTitle').innerText = (currentRole === 'supervisor' ? "Supervisor" : "HR Admin");
                 if(currentRole === 'supervisor') {
                     document.getElementById('tabBtnSettings').classList.add('hidden');
                     document.getElementById('addUserDiv').classList.add('hidden'); 
                 }
-            }
-            
-            // 3. ปล่อยให้โหลดข้อมูลการตั้งค่าเบื้องหลัง
-            fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) })
-            .then(r=>r.json()).then(d => {
-                if(d.status === 'success') {
-                    function formatTimeValue(tStr) {
-                        if(!tStr) return "08:30";
-                        let p = tStr.toString().split(':');
-                        if(p.length >= 2) return p[0].padStart(2, '0') + ':' + p[1].padStart(2, '0');
-                        return "08:30";
-                    }
-
-                    workConfig = d.config || { start: "08:30", end: "17:30" };
-                    document.getElementById('confStart').value = formatTimeValue(workConfig.start);
-                    document.getElementById('confEnd').value = formatTimeValue(workConfig.end);
-                    document.querySelectorAll('.legend-late').forEach(el => el.innerText = `เข้าสาย (>${formatTimeValue(workConfig.start)})`);
-                    allHolidays = d.holidays || [];
-
-                    if(currentRole === 'employee') {
-                        allLocations = d.locations || [];
-                        
-                        // ดึงข้อมูลประวัติการลงเวลาต่อทันที
-                        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
-                        .then(r=>r.json()).then(logData => {
-                            currentLogs = logData.data || [];
-                            
-                            // รีเฟรชปุ่มเมื่อโหลดประวัติล่าสุดเสร็จแล้ว
-                            if (myLat !== 0) {
-                                checkPosition({ coords: { latitude: myLat, longitude: myLon } });
-                            } else {
-                                updateCheckInButtons();
-                            }
-                        });
-                        
-                        // ถ้าระบบ GPS ได้พิกัดมาแล้วก่อนข้อมูลบริษัทโหลดเสร็จ ให้ตรวจสอบระยะอีกครั้ง
-                        if (myLat !== 0) {
-                            checkPosition({ coords: { latitude: myLat, longitude: myLon } });
-                        }
-                        
-                    } else {
+                
+                fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) })
+                .then(r=>r.json()).then(d => {
+                    if(d.status === 'success') {
+                        applyInitData(d);
                         renderDashboard(d.dashboard);
                         let sel = document.getElementById('hrCalUserSelect'); 
                         sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; 
@@ -574,10 +584,8 @@
                             }
                         });
                     }
-                }
-            }).catch(err => {
-                console.error("Background load error:", err);
-            });
+                }).catch(err => console.error("HR load error:", err));
+            }
         }
     };
 
