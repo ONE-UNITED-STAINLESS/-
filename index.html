@@ -78,6 +78,7 @@
         .bg-green { background: var(--success); } .bg-orange { background: var(--warning); } .bg-red { background: var(--danger); } .bg-blue { background: var(--primary); } .bg-gray { background: #d1d5db; color: #374151; } .bg-purple { background: #8b5cf6; }
         .status-Pending { color: var(--warning); font-weight: bold; } .status-Approved { color: var(--success); font-weight: bold; } .status-Rejected { color: var(--danger); font-weight: bold; }
 
+        /* ซ่อน loading overlay แบบเดิมไปเลย หรือจะเก็บไว้ใช้ตอนหน้าอื่นก็ได้ */
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .loader { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -494,6 +495,7 @@
     setInterval(updateClocks, 1000);
     updateClocks(); 
 
+    // ✅ อัปเดตโหลดข้อมูลเบื้องหลัง & เปิดกล้อง/GPS ทันที
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
         let savedRole = localStorage.getItem('work_checkin_role');
@@ -503,13 +505,29 @@
             currentUser = savedUser; currentRole = savedRole; 
             currentRealName = savedRealName || savedUser; 
             
+            // 1. ปิดหน้า Login ทันที
             document.getElementById('loginSec').classList.add('hidden');
-            document.getElementById('loadingOverlay').classList.remove('hidden'); 
             
+            // 2. แสดงหน้า UI ของแอป พร้อมเปิดกล้องและ GPS ทันที (ไม่ต้องรอโหลดข้อมูล)
+            if(currentRole === 'employee') {
+                document.getElementById('empSec').classList.remove('hidden'); 
+                document.getElementById('empName').innerText = currentRealName; 
+                
+                startCamera();
+                refreshGPS();
+                document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--warning);">กำลังเปิดกล้อง และดึงพิกัด GPS...</span>';
+            } else {
+                document.getElementById('hrSec').classList.remove('hidden'); 
+                document.getElementById('roleTitle').innerText = (currentRole === 'supervisor' ? "Supervisor" : "HR Admin");
+                if(currentRole === 'supervisor') {
+                    document.getElementById('tabBtnSettings').classList.add('hidden');
+                    document.getElementById('addUserDiv').classList.add('hidden'); 
+                }
+            }
+            
+            // 3. ปล่อยให้โหลดข้อมูลการตั้งค่าเบื้องหลัง
             fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) })
             .then(r=>r.json()).then(d => {
-                document.getElementById('loadingOverlay').classList.add('hidden'); 
-                
                 if(d.status === 'success') {
                     function formatTimeValue(tStr) {
                         if(!tStr) return "08:30";
@@ -525,24 +543,27 @@
                     allHolidays = d.holidays || [];
 
                     if(currentRole === 'employee') {
-                        document.getElementById('empSec').classList.remove('hidden'); 
-                        document.getElementById('empName').innerText = currentRealName; 
                         allLocations = d.locations || [];
                         
-                        // ✅ ดึงข้อมูลประวัติทันทีเพื่อเช็คสถานะปุ่มให้ถูกต้อง
+                        // ดึงข้อมูลประวัติการลงเวลาต่อทันที
                         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
                         .then(r=>r.json()).then(logData => {
                             currentLogs = logData.data || [];
-                            refreshGPS(); startCamera();
+                            
+                            // รีเฟรชปุ่มเมื่อโหลดประวัติล่าสุดเสร็จแล้ว
+                            if (myLat !== 0) {
+                                checkPosition({ coords: { latitude: myLat, longitude: myLon } });
+                            } else {
+                                updateCheckInButtons();
+                            }
                         });
                         
-                    } else {
-                        document.getElementById('hrSec').classList.remove('hidden'); 
-                        document.getElementById('roleTitle').innerText = (currentRole === 'supervisor' ? "Supervisor" : "HR Admin");
-                        if(currentRole === 'supervisor') {
-                            document.getElementById('tabBtnSettings').classList.add('hidden');
-                            document.getElementById('addUserDiv').classList.add('hidden'); 
+                        // ถ้าระบบ GPS ได้พิกัดมาแล้วก่อนข้อมูลบริษัทโหลดเสร็จ ให้ตรวจสอบระยะอีกครั้ง
+                        if (myLat !== 0) {
+                            checkPosition({ coords: { latitude: myLat, longitude: myLon } });
                         }
+                        
+                    } else {
                         renderDashboard(d.dashboard);
                         let sel = document.getElementById('hrCalUserSelect'); 
                         sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; 
@@ -555,8 +576,7 @@
                     }
                 }
             }).catch(err => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                alert("เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณารีเฟรชหน้าเว็บใหม่");
+                console.error("Background load error:", err);
             });
         }
     };
@@ -667,46 +687,38 @@
         if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
     }
 
-    // ✅ ฟังก์ชันปรับปรุงใหม่ ควบคุมปุ่ม เข้า/ออก/OT (บังคับออกงานปกติก่อนเข้า OT)
+    // ✅ อัปเดตใหม่ ควบคุมปุ่ม เข้า/ออก/OT (บังคับออกงานปกติก่อนเข้า OT)
     function updateCheckInButtons() {
         let now = new Date();
         let currentHour = now.getHours();
         
-        // เงื่อนไข: ตั้งแต่ 17:00 น. (17) ไปจนถึงก่อน 07:00 น. (0-6) ของอีกวัน
         let isOTTime = (currentHour >= 17 || currentHour < 7);
         
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
         
-        // ล้างสไตล์ความโปร่งใส ให้ปุ่มกลับมาสว่างปกติ
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
 
-        // 🔍 1. ตรวจสอบสถานะการลงเวลาล่าสุดของพนักงาน
         let latestStatus = '';
         if (currentLogs && currentLogs.length > 0) {
-            latestStatus = currentLogs[0][2] || ''; // currentLogs จะเรียงข้อมูลล่าสุดไว้ที่ index 0 เสมอ
+            latestStatus = currentLogs[0][2] || ''; 
         }
 
-        // จัดกลุ่มสถานะเพื่อให้เช็กเงื่อนไขได้ง่ายขึ้น
         let isCurrentlyInNormal = latestStatus.includes('เข้างาน') && !latestStatus.includes('OT');
         let isCurrentlyInOT = latestStatus.includes('เข้างาน') && latestStatus.includes('OT');
         let isCurrentlyOutNormal = latestStatus.includes('ออกงาน') && !latestStatus.includes('OT');
         
         if (isOTTime) {
-            // ================== ช่วงเวลา OT (17:00 - 06:59) ==================
-            
             if (isCurrentlyInNormal) {
-                // 🛑 กรณี: เข้างานปกติมาแล้ว แต่ยังไม่ได้กดออกงาน
                 btnIn.innerText = "▶️ เข้างาน (OT)";
-                btnIn.style.opacity = "0.5"; // ทำให้ปุ่มจางลง สื่อว่ายังกดไม่ได้
+                btnIn.style.opacity = "0.5"; 
                 btnIn.onclick = () => alert("⚠️ กรุณากด 'ออกงาน' ปกติให้เรียบร้อยก่อน เริ่มงาน OT ครับ");
                 
                 btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.onclick = () => checkIn('ออกงาน'); // ให้ปุ่มออกงานเป็นแบบปกติ
+                btnOut.onclick = () => checkIn('ออกงาน'); 
 
             } else if (isCurrentlyInOT) {
-                // 🕒 กรณี: กำลังทำ OT อยู่ (กดเข้า OT ไปแล้ว)
                 btnIn.innerText = "▶️ เข้างาน (OT)";
                 btnIn.style.opacity = "0.5";
                 btnIn.onclick = () => alert("คุณกำลังอยู่ในช่วงเวลาทำงาน OT ครับ");
@@ -715,12 +727,10 @@
                 btnOut.onclick = () => checkIn('ออกงาน(OT)');
 
             } else {
-                // ✅ กรณี: ออกงานปกติไปแล้ว, ออก OT ไปแล้ว, หรือยังไม่มีประวัติ
                 btnIn.innerText = "▶️ เข้างาน (OT)";
                 btnIn.onclick = () => checkIn('เข้างาน(OT)');
                 
                 btnOut.innerText = "⏹️ ออกงาน (OT)";
-                // กันเหนียว ไม่ให้กดออกงานก่อนเข้างาน OT
                 if (isCurrentlyOutNormal || latestStatus === '' || (latestStatus.includes('ออกงาน') && latestStatus.includes('OT'))) {
                     btnOut.style.opacity = "0.5";
                     btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน (OT)' ก่อนครับ");
@@ -730,10 +740,7 @@
             }
             
         } else {
-            // ================== ช่วงเวลาทำงานปกติ (07:00 - 16:59) ==================
-            
             if (isCurrentlyInNormal) {
-                // ถ้าเข้างานไปแล้ว จะกดเข้าซ้ำไม่ได้ บังคับให้ออกงานได้อย่างเดียว
                 btnIn.innerText = "▶️ เข้างาน";
                 btnIn.style.opacity = "0.5";
                 btnIn.onclick = () => alert("คุณได้เข้างานไปแล้วครับ");
@@ -741,7 +748,6 @@
                 btnOut.innerText = "⏹️ ออกงาน";
                 btnOut.onclick = () => checkIn('ออกงาน');
             } else {
-                // ถ้ายังไม่เข้างาน บังคับให้เข้างานก่อน
                 btnIn.innerText = "▶️ เข้างาน";
                 btnIn.onclick = () => checkIn('เข้างาน');
                 
@@ -761,17 +767,28 @@
             document.getElementById('empLocName').innerText = targetLocName; document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--success);">อยู่ในพื้นที่ (ห่าง ${Math.round(myDistance)} ม.)</span>`;
             document.getElementById('btnIn').classList.remove('hidden'); document.getElementById('btnOut').classList.remove('hidden');
             
-            // ✅ เรียกใช้อัปเดตสถานะปุ่ม
             updateCheckInButtons();
             
             document.getElementById('cameraDiv').classList.remove('hidden'); 
         } else {
             myDistance = closestDist; targetLocName = closestLoc ? closestLoc.name : '-';
-            document.getElementById('empLocName').innerText = targetLocName + ' (อ้างอิงจุดใกล้สุด)'; document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--danger);">อยู่นอกพื้นที่เช็คอิน</span>`;
+            
+            // รอให้ allLocations โหลดเสร็จก่อนค่อยแจ้งเตือนว่าอยู่นอกพื้นที่
+            if(allLocations.length === 0) {
+                document.getElementById('empLocName').innerText = 'รอข้อมูลจุดลงเวลา...';
+                document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--warning);">กำลังซิงค์พิกัดบริษัท...</span>`;
+            } else {
+                document.getElementById('empLocName').innerText = targetLocName + ' (อ้างอิงจุดใกล้สุด)'; 
+                document.getElementById('gpsStatus').innerHTML = `<span style="color:var(--danger);">อยู่นอกพื้นที่เช็คอิน</span>`;
+            }
+
             document.getElementById('btnIn').classList.add('hidden'); document.getElementById('btnOut').classList.add('hidden');
             document.getElementById('cameraDiv').classList.add('hidden'); 
         }
-        renderEmpMap();
+        
+        if (allLocations.length > 0) {
+            renderEmpMap();
+        }
     }
 
     function renderEmpMap() {
@@ -790,27 +807,23 @@
     // ฟังก์ชัน Check-In (เด้งสำเร็จเต็มจอทันที)
     // ==========================================
     function checkIn(st) {
-        // 1. เตรียมข้อความแจ้งเตือนให้ตรงกับปุ่มที่กด
         let displayMsg = st.replace('(OT)', ' (OT)'); 
         
         let overlay = document.getElementById('successOverlay');
         let iconDiv = overlay.querySelector('div'); 
         let okBtn = overlay.querySelector('button'); 
         
-        // 2. เด้งหน้าจอ "สำเร็จ" ทันทีที่กดปุ่ม (ไม่ต้องรอโหลด)
         iconDiv.innerText = '✅';
         document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--success);">${displayMsg}แล้ว!</span>`;
         document.getElementById('successOverlayTime').innerText = new Date().toLocaleTimeString('th-TH');
         document.getElementById('successOverlayLoc').innerText = "📍 " + targetLocName;
         
-        okBtn.classList.remove('hidden'); // แสดงปุ่ม "ตกลง" ให้พนักงานกดปิดได้เลย
-        overlay.classList.remove('hidden'); // แสดงหน้าจอเต็มจอ
+        okBtn.classList.remove('hidden'); 
+        overlay.classList.remove('hidden'); 
 
-        // ล็อคปุ่มด้านหลังชั่วคราวกันการกดเบิ้ล
         document.getElementById('btnIn').disabled = true; 
         document.getElementById('btnOut').disabled = true; 
         
-        // 3. ถ่ายรูปและส่งข้อมูลไปบันทึกที่ Backend (ทำงานอยู่เบื้องหลัง)
         let base64Img = captureImageWithWatermark();
         
         fetch(scriptURL, { 
@@ -829,7 +842,6 @@
         .then(r => r.json())
         .then(d => {
             if(d.status === 'success') { 
-                // หากเซฟเสร็จสมบูรณ์ สั่งดึงประวัติมาอัปเดตแบบเงียบๆ
                 fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
                 .then(r => r.json())
                 .then(logData => { 
@@ -840,14 +852,12 @@
                     }
                 });
             } else { 
-                // แทรกกรณี error เท่านั้นที่จะเปลี่ยนหน้าจอกลับมาแจ้งเตือน
                 iconDiv.innerText = '❌';
                 document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">บันทึกไม่สำเร็จ</span><br><span style="font-size:16px; color:var(--dark);">${d.message}</span>`;
             }
             document.getElementById('btnIn').disabled = false; 
             document.getElementById('btnOut').disabled = false; 
         }).catch(err => {
-            // กรณีเน็ตหลุดหรือมีข้อผิดพลาด
             iconDiv.innerText = '❌';
             document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">ระบบขัดข้อง</span><br><span style="font-size:16px; color:var(--dark);">กรุณาลองใหม่อีกครั้ง</span>`;
             document.getElementById('btnIn').disabled = false; 
@@ -1018,7 +1028,6 @@
             
             let sortedDayLogs = [...dayLogs].sort((a, b) => a[0].localeCompare(b[0]));
 
-            // ✅ ปรับเงื่อนไขการวาด Tag ปฏิทินให้รองรับ OT ถูกต้องแม่นยำ
             sortedDayLogs.forEach(l => { 
                 if(l[2].includes('ลา')) { hasLeave = true; leaveLabel = l[2]; } 
                 if(l[2].includes('เข้างาน') || l[2].includes('ออกงาน')) { 
