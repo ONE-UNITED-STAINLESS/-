@@ -168,7 +168,6 @@
             </div>
             
             <div class="mt-3 text-center">
-                <!-- ปรับปุ่มให้เปลี่ยนฟังก์ชันด้วย JavaScript แบบ Dynamic -->
                 <div class="flex-gap" style="justify-content: center;">
                     <button id="btnIn" class="btn-green hidden" style="flex: 1; padding: 15px; font-size: 16px; box-shadow: 0 4px 6px rgba(16,185,129,0.3); transition: all 0.3s;">▶️ เข้างาน</button>
                     <button id="btnOut" class="btn-red hidden" style="flex: 1; padding: 15px; font-size: 16px; box-shadow: 0 4px 6px rgba(239,68,68,0.3); transition: all 0.3s;">⏹️ ออกงาน</button>
@@ -664,78 +663,35 @@
         if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
     }
 
-    // ✅ ฟังก์ชันใหม่ ควบคุมตรรกะการเปลี่ยนปุ่ม เข้า/ออก/OT
+    // ✅ ฟังก์ชันปรับปรุงใหม่ ควบคุมปุ่ม เข้า/ออก/OT (ลบเช็คประวัติเก่า, เพิ่มเงื่อนไขเวลา)
     function updateCheckInButtons() {
         let now = new Date();
-        let isAfter5 = now.getHours() >= 17; // หลัง 17:00 ถือเป็นช่วง OT
+        let currentHour = now.getHours();
         
-        // หากลุ่ม Log ของวันนี้
-        let todayPrefix = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth()+1)).slice(-2) + '/' + now.getFullYear();
-        let todayLogs = currentLogs.filter(l => l[0].startsWith(todayPrefix));
-        
-        let hasIn = todayLogs.some(l => l[2].includes('เข้างาน') && !l[2].includes('OT'));
-        let hasOut = todayLogs.some(l => l[2].includes('ออกงาน') && !l[2].includes('OT'));
-        let hasOtIn = todayLogs.some(l => l[2] === 'เข้างาน(OT)');
-        let hasOtOut = todayLogs.some(l => l[2] === 'ออกงาน(OT)');
+        // เงื่อนไข: ตั้งแต่ 17:00 น. (17) ไปจนถึงก่อน 07:00 น. (0-6) ของอีกวัน
+        let isOTTime = (currentHour >= 17 || currentHour < 7);
         
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
         
-        // ล้างสไตล์
+        // ล้างสไตล์ความโปร่งใส ให้ปุ่มสว่างพร้อมกดเสมอ
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
         
-        if (isAfter5) {
-            // ================== หลัง 17:00 (ระบบ OT) ==================
-            if (!hasOut) {
-                // กรณียังไม่ได้กด ออกงาน(ปกติ)
-                btnIn.innerText = "▶️ เข้างาน (OT)";
-                btnIn.onclick = () => alert('⚠️ กรุณากด "ออกงาน" ปกติก่อน ถึงจะสามารถกดเข้า OT ได้');
-                btnIn.style.opacity = "0.5";
-                
-                btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.onclick = () => checkIn('ออกงาน');
-            } else {
-                // กดออกงาน(ปกติ)แล้ว พร้อมเข้าสู่ระบบ OT
-                btnIn.innerText = "▶️ เข้างาน (OT)";
-                if (hasOtIn) {
-                    btnIn.onclick = () => alert('✅ คุณเข้างาน OT ไปแล้ว');
-                    btnIn.style.opacity = "0.5";
-                } else {
-                    btnIn.onclick = () => checkIn('เข้างาน(OT)');
-                }
-                
-                btnOut.innerText = "⏹️ ออกงาน (OT)";
-                if (!hasOtIn) {
-                    btnOut.onclick = () => alert('⚠️ กรุณากด "เข้างาน (OT)" ก่อน');
-                    btnOut.style.opacity = "0.5";
-                } else if (hasOtOut) {
-                    btnOut.onclick = () => alert('✅ คุณออกงาน OT ไปแล้ว');
-                    btnOut.style.opacity = "0.5";
-                } else {
-                    btnOut.onclick = () => checkIn('ออกงาน(OT)');
-                }
-            }
+        if (isOTTime) {
+            // ================== หลัง 17:00 ถึง 06:59 (ระบบ OT) ==================
+            btnIn.innerText = "▶️ เข้างาน (OT)";
+            btnIn.onclick = () => checkIn('เข้างาน(OT)');
+            
+            btnOut.innerText = "⏹️ ออกงาน (OT)";
+            btnOut.onclick = () => checkIn('ออกงาน(OT)');
         } else {
             // ================== ก่อน 17:00 (ระบบปกติ) ==================
             btnIn.innerText = "▶️ เข้างาน";
-            if (hasIn) {
-                btnIn.onclick = () => alert('✅ คุณเข้างานไปแล้ว');
-                btnIn.style.opacity = "0.5";
-            } else {
-                btnIn.onclick = () => checkIn('เข้างาน');
-            }
+            btnIn.onclick = () => checkIn('เข้างาน');
             
             btnOut.innerText = "⏹️ ออกงาน";
-            if (hasOut) {
-                btnOut.onclick = () => alert('✅ คุณออกงานไปแล้ว');
-                btnOut.style.opacity = "0.5";
-            } else if (!hasIn) {
-                btnOut.onclick = () => alert('⚠️ กรุณากด "เข้างาน" ก่อน');
-                btnOut.style.opacity = "0.5";
-            } else {
-                btnOut.onclick = () => checkIn('ออกงาน');
-            }
+            btnOut.onclick = () => checkIn('ออกงาน');
         }
     }
 
@@ -773,22 +729,52 @@
 
     function calculateDistance(lat1, lon1, lat2, lon2) { var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742000 * Math.asin(Math.sqrt(a)); }
 
+    // ==========================================
+    // ฟังก์ชัน Check-In (เด้งสำเร็จเต็มจอทันที)
+    // ==========================================
     function checkIn(st) {
-        document.getElementById('empMsg').innerHTML = '<span style="color:var(--primary); font-weight:500;">กำลังบันทึกข้อมูล...</span>';
-        document.getElementById('btnIn').disabled = true; document.getElementById('btnOut').disabled = true; 
+        // 1. เตรียมข้อความแจ้งเตือนให้ตรงกับปุ่มที่กด
+        let displayMsg = st.replace('(OT)', ' (OT)'); 
+        
+        let overlay = document.getElementById('successOverlay');
+        let iconDiv = overlay.querySelector('div'); 
+        let okBtn = overlay.querySelector('button'); 
+        
+        // 2. เด้งหน้าจอ "สำเร็จ" ทันทีที่กดปุ่ม (ไม่ต้องรอโหลด)
+        iconDiv.innerText = '✅';
+        document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--success);">${displayMsg}แล้ว!</span>`;
+        document.getElementById('successOverlayTime').innerText = new Date().toLocaleTimeString('th-TH');
+        document.getElementById('successOverlayLoc').innerText = "📍 " + targetLocName;
+        
+        okBtn.classList.remove('hidden'); // แสดงปุ่ม "ตกลง" ให้พนักงานกดปิดได้เลย
+        overlay.classList.remove('hidden'); // แสดงหน้าจอเต็มจอ
+
+        // ล็อคปุ่มด้านหลังชั่วคราวกันการกดเบิ้ล
+        document.getElementById('btnIn').disabled = true; 
+        document.getElementById('btnOut').disabled = true; 
+        
+        // 3. ถ่ายรูปและส่งข้อมูลไปบันทึกที่ Backend (ทำงานอยู่เบื้องหลัง)
         let base64Img = captureImageWithWatermark();
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({ action: 'checkin', username: currentRealName, status: st, userLat: myLat, userLon: myLon, distance: Math.round(myDistance), locName: targetLocName, imageBase64: base64Img }) }).then(r=>r.json()).then(d => {
+        
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: new URLSearchParams({ 
+                action: 'checkin', 
+                username: currentRealName, 
+                status: st, 
+                userLat: myLat, 
+                userLon: myLon, 
+                distance: Math.round(myDistance), 
+                locName: targetLocName, 
+                imageBase64: base64Img 
+            }) 
+        })
+        .then(r => r.json())
+        .then(d => {
             if(d.status === 'success') { 
-                document.getElementById('empMsg').innerHTML = ``; 
-                
-                document.getElementById('successOverlayMsg').innerText = st + 'แล้ว!';
-                document.getElementById('successOverlayTime').innerText = new Date().toLocaleTimeString('th-TH');
-                document.getElementById('successOverlayLoc').innerText = "📍 " + targetLocName;
-                document.getElementById('successOverlay').classList.remove('hidden');
-                
-                // ✅ โหลดประวัติใหม่ เพื่ออัปเดตระบบล็อคปุ่มโดยไม่ต้องรีเฟรชหน้า
+                // หากเซฟเสร็จสมบูรณ์ สั่งดึงประวัติมาอัปเดตแบบเงียบๆ
                 fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
-                .then(r=>r.json())
+                .then(r => r.json())
                 .then(logData => { 
                     currentLogs = logData.data || []; 
                     updateCheckInButtons(); 
@@ -796,14 +782,19 @@
                         renderMyLogList();
                     }
                 });
-                
             } else { 
-                document.getElementById('empMsg').innerHTML = `<span style="color:var(--danger); font-weight:600;">❌ ${d.message}</span>`; 
+                // แทรกกรณี error เท่านั้นที่จะเปลี่ยนหน้าจอกลับมาแจ้งเตือน
+                iconDiv.innerText = '❌';
+                document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">บันทึกไม่สำเร็จ</span><br><span style="font-size:16px; color:var(--dark);">${d.message}</span>`;
             }
-            document.getElementById('btnIn').disabled = false; document.getElementById('btnOut').disabled = false; 
+            document.getElementById('btnIn').disabled = false; 
+            document.getElementById('btnOut').disabled = false; 
         }).catch(err => {
-            document.getElementById('empMsg').innerHTML = `<span style="color:var(--danger); font-weight:600;">❌ ขัดข้อง กรุณาลองใหม่</span>`;
-            document.getElementById('btnIn').disabled = false; document.getElementById('btnOut').disabled = false; 
+            // กรณีเน็ตหลุดหรือมีข้อผิดพลาด
+            iconDiv.innerText = '❌';
+            document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">ระบบขัดข้อง</span><br><span style="font-size:16px; color:var(--dark);">กรุณาลองใหม่อีกครั้ง</span>`;
+            document.getElementById('btnIn').disabled = false; 
+            document.getElementById('btnOut').disabled = false; 
         });
     }
     
