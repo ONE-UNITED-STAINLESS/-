@@ -814,14 +814,14 @@
     function calculateDistance(lat1, lon1, lat2, lon2) { var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742000 * Math.asin(Math.sqrt(a)); }
 
     // ==========================================
-    // ฟังก์ชัน Check-In (เด้งสำเร็จเต็มจอทันที)
+    // ฟังก์ชัน Check-In (เด้งสำเร็จเต็มจอทันที พร้อมส่งข้อมูลเบื้องหลัง)
     // ==========================================
     function checkIn(st) {
-        // --- ส่วนที่ 1: เปลี่ยน UI และสถานะปุ่มทันทีที่กด (Optimistic UI) ---
+        // --- ส่วนที่ 1: เปลี่ยน UI ทันทีที่กด (ไม่ต้องรอหลังบ้าน) ---
         let nowStr = new Date().toLocaleString('th-TH');
-        // จำลองข้อมูลดันเข้าไปใน currentLogs ตัวแรกสุดทันที
+        
+        // จำลองประวัติดันเข้าไปในระบบก่อน เพื่อให้ปุ่มเปลี่ยนสถานะทันที
         currentLogs.unshift([nowStr, currentRealName, st, "", "", "", targetLocName, ""]);
-        // เรียกอัปเดตปุ่มทันที
         updateCheckInButtons();
         
         let displayMsg = st.replace('(OT)', ' (OT)'); 
@@ -834,13 +834,13 @@
         document.getElementById('successOverlayTime').innerText = new Date().toLocaleTimeString('th-TH');
         document.getElementById('successOverlayLoc').innerText = "📍 " + targetLocName;
         
-        // ล็อกปุ่ม "ตกลง" ไว้จนกว่าจะส่งข้อมูลเสร็จ ป้องกันการกดย้ำ
-        okBtn.innerText = "กำลังบันทึกข้อมูล...";
-        okBtn.disabled = true;
+        // ปลดล็อกปุ่มให้กด "ตกลง" เพื่อปิดหน้าต่างได้ทันที!
+        okBtn.innerText = "ตกลง";
+        okBtn.disabled = false;
         okBtn.classList.remove('hidden'); 
         overlay.classList.remove('hidden'); 
 
-        // --- ส่วนที่ 2: ดำเนินการถ่ายภาพและส่งข้อมูลไป GAS ---
+        // --- ส่วนที่ 2: ถ่ายรูปและส่งข้อมูลไปบันทึกเบื้องหลัง (Background Process) ---
         let base64Img = captureImageWithWatermark();
         
         fetch(scriptURL, { 
@@ -858,11 +858,8 @@
         })
         .then(r => r.json())
         .then(d => {
-            okBtn.disabled = false;
-            okBtn.innerText = "ตกลง";
-
             if(d.status === 'success') { 
-                // สำเร็จ: ดึงประวัติที่ชัวร์ๆ จากหลังบ้านมาอัปเดตทับอีกครั้งเงียบๆ
+                // สำเร็จ: ดึงประวัติจริงๆ จากฐานข้อมูลมาอัปเดตทับข้อมูลจำลองแบบเงียบๆ
                 fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) })
                 .then(r => r.json())
                 .then(logData => { 
@@ -873,23 +870,16 @@
                     }
                 });
             } else { 
-                // ล้มเหลว: เอาประวัติจำลองที่แทรกไว้ออกไป และอัปเดตปุ่มกลับสภาพเดิม
+                // ถ้าบันทึกพลาดเบื้องหลัง: คืนค่าปุ่มเดิม และแจ้งเตือนให้รู้ตัว
                 currentLogs.shift();
                 updateCheckInButtons();
-
-                iconDiv.innerText = '❌';
-                document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">บันทึกไม่สำเร็จ</span><br><span style="font-size:16px; color:var(--dark);">${d.message}</span>`;
+                alert(`❌ ดำเนินการเบื้องหลังไม่สำเร็จ (${st}): ${d.message}`);
             }
         }).catch(err => {
-            okBtn.disabled = false;
-            okBtn.innerText = "ตกลง";
-            
-            // ล้มเหลว: เอาประวัติจำลองที่แทรกไว้ออกไป
+            // ถ้าระบบล่มหรือเน็ตหลุดเบื้องหลัง: คืนค่าปุ่มเดิม
             currentLogs.shift();
             updateCheckInButtons();
-
-            iconDiv.innerText = '❌';
-            document.getElementById('successOverlayMsg').innerHTML = `<span style="color:var(--danger);">ระบบขัดข้อง</span><br><span style="font-size:16px; color:var(--dark);">กรุณาลองใหม่อีกครั้ง</span>`;
+            alert(`❌ สัญญาณอินเทอร์เน็ตขัดข้อง: บันทึก ${st} ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง`);
         });
     }
     
