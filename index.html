@@ -78,7 +78,6 @@
         .bg-green { background: var(--success); } .bg-orange { background: var(--warning); } .bg-red { background: var(--danger); } .bg-blue { background: var(--primary); } .bg-gray { background: #d1d5db; color: #374151; } .bg-purple { background: #8b5cf6; }
         .status-Pending { color: var(--warning); font-weight: bold; } .status-Approved { color: var(--success); font-weight: bold; } .status-Rejected { color: var(--danger); font-weight: bold; }
 
-        /* ซ่อน loading overlay แบบเดิมไปเลย หรือจะเก็บไว้ใช้ตอนหน้าอื่นก็ได้ */
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .loader { border: 6px solid #f3f3f3; border-top: 6px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -511,7 +510,7 @@
         allLocations = d.locations || [];
     }
 
-    // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน
+    // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน (พื้นหลัง)
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
         let savedRole = localStorage.getItem('work_checkin_role');
@@ -527,7 +526,7 @@
                 document.getElementById('empSec').classList.remove('hidden'); 
                 document.getElementById('empName').innerText = currentRealName; 
                 
-                // 1. [ความเร็วสูงสุด] ดึงข้อมูลจาก Cache ในเครื่องมาใช้ก่อนทันที
+                // 1. [ความเร็วสูงสุด] ดึงข้อมูลล่าสุดจาก Cache ในเครื่องมาใช้ก่อนทันที
                 let cachedInit = localStorage.getItem('kp_cached_init');
                 let cachedLogs = localStorage.getItem('kp_cached_logs');
                 
@@ -538,7 +537,7 @@
                 refreshGPS();
                 document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--warning);">กำลังเปิดกล้อง และดึงพิกัด GPS...</span>';
                 
-                // 2. ดึงข้อมูลจาก GAS พร้อมกัน 2 เส้นทางเบื้องหลัง (ไม่ต้องรอคิว)
+                // 2. ดึงข้อมูลประวัติย้อนหลังทั้งหมดจาก GAS พร้อมกัน 2 เส้นทางเบื้องหลัง (ไม่ต้องรอคิว)
                 Promise.all([
                     fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) }).then(r=>r.json()),
                     fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentRealName}) }).then(r=>r.json())
@@ -695,76 +694,35 @@
         if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
     }
 
-    // ✅ อัปเดตใหม่ ควบคุมปุ่ม เข้า/ออก/OT (บังคับออกงานปกติก่อนเข้า OT)
+    // ✅ อัปเดตใหม่ ให้กดเข้าออกงานได้ตลอด (ไม่มีแจ้งเตือนขัด) & หลัง 18:00 ถึง 05:00 เปลี่ยนเป็น OT อัตโนมัติ
     function updateCheckInButtons() {
         let now = new Date();
         let currentHour = now.getHours();
         
-        // เช็คเวลา OT (หลัง 17:00 หรือก่อน 07:00)
-        let isOTTime = (currentHour >= 17 || currentHour < 7);
+        // เช็คเวลา OT (ตั้งแต่เวลา 18:00 ถึง 04:59 ของอีกวัน)
+        let isOTTime = (currentHour >= 18 || currentHour < 5);
         
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
         
+        // ปลดล็อกให้กดได้ตลอดเวลา
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
+        btnIn.disabled = false;
+        btnOut.disabled = false;
 
-        let latestStatus = '';
-        if (currentLogs && currentLogs.length > 0) {
-            latestStatus = currentLogs[0][2] || ''; 
-        }
-
-        let isCurrentlyInNormal = (latestStatus === 'เข้างาน');
-        let isCurrentlyOutNormal = (latestStatus === 'ออกงาน');
-        let isCurrentlyInOT = (latestStatus === 'เข้างาน(OT)' || latestStatus === 'เข้างาน (OT)');
-        
-        // 1. ถ้ายังไม่ได้ออกงาน (กำลังอยู่ในกะปกติ) -> ต้องออกงานก่อนเท่านั้น
-        if (isCurrentlyInNormal) {
-            btnIn.innerText = "▶️ เข้างาน" + (isOTTime ? " (OT)" : "");
-            btnIn.style.opacity = "0.5"; 
-            btnIn.onclick = () => alert("⚠️ คุณต้องกด 'ออกงาน' ตามปกติให้เรียบร้อยก่อนครับ จึงจะเริ่ม OT ได้");
-            
-            btnOut.innerText = "⏹️ ออกงาน";
-            btnOut.onclick = () => checkIn('ออกงาน'); 
-        } 
-        // 2. ถ้าออกงานปกติไปแล้ว
-        else if (isCurrentlyOutNormal) {
-            if (isOTTime) {
-                // ถึงเวลา OT แล้ว และกดออกงานปกติแล้ว -> เปิดให้เข้า OT
-                btnIn.innerText = "▶️ เข้างาน (OT)";
-                btnIn.onclick = () => checkIn('เข้างาน(OT)');
-                
-                btnOut.innerText = "⏹️ ออกงาน (OT)";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน (OT)' ก่อนครับ");
-            } else {
-                // ออกงานแล้ว แต่ยังไม่ถึงเวลา OT
-                btnIn.innerText = "▶️ เข้างาน (OT)";
-                btnIn.style.opacity = "0.5";
-                btnIn.onclick = () => alert("⚠️ ยังไม่ถึงเวลาทำงาน OT ครับ");
-                
-                btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ คุณได้ออกงานไปแล้วครับ");
-            }
-        }
-        // 3. ถ้ากำลังเข้า OT อยู่
-        else if (isCurrentlyInOT) {
+        if (isOTTime) {
             btnIn.innerText = "▶️ เข้างาน (OT)";
-            btnIn.style.opacity = "0.5";
-            btnIn.onclick = () => alert("คุณกำลังอยู่ในช่วงเวลาทำงาน OT ครับ");
+            btnIn.onclick = () => checkIn('เข้างาน(OT)');
             
             btnOut.innerText = "⏹️ ออกงาน (OT)";
             btnOut.onclick = () => checkIn('ออกงาน(OT)');
-        }
-        // 4. ถ้ายังไม่ได้เข้างานเลย (หรือจบ OT ไปแล้ว) -> เปิดให้เข้างานปกติ
-        else {
+        } else {
             btnIn.innerText = "▶️ เข้างาน";
             btnIn.onclick = () => checkIn('เข้างาน');
             
             btnOut.innerText = "⏹️ ออกงาน";
-            btnOut.style.opacity = "0.5";
-            btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน' ก่อนครับ");
+            btnOut.onclick = () => checkIn('ออกงาน');
         }
     }
 
