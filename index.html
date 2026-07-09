@@ -694,7 +694,7 @@
         if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
     }
 
-    // ✅ อัปเดตใหม่: เวลา OT 17:00-04:59 และบังคับให้ออกงานปกติก่อนเข้า OT
+    // ✅ อัปเดตใหม่ ให้กดเข้า/ออกได้หลายรอบ และบังคับให้ออกงานปกติก่อนเข้า OT
     function updateCheckInButtons() {
         let now = new Date();
         let currentHour = now.getHours();
@@ -705,6 +705,7 @@
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
         
+        // ปลดล็อกให้กดปุ่มได้เสมอ
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
         btnIn.disabled = false;
@@ -716,64 +717,30 @@
         }
 
         let isCurrentlyInNormal = (latestStatus === 'เข้างาน');
-        let isCurrentlyOutNormal = (latestStatus === 'ออกงาน');
-        let isCurrentlyInOT = (latestStatus === 'เข้างาน(OT)' || latestStatus === 'เข้างาน (OT)');
         
-        // 1. ถ้าเพิ่งกด "เข้างาน" ปกติ (ยังไม่ได้ออกงาน) -> บังคับให้ออกงานก่อนเท่านั้น
-        if (isCurrentlyInNormal) {
-            btnIn.innerText = isOTTime ? "▶️ เข้างาน (OT)" : "▶️ เข้างาน";
+        // กรณีเพิ่งกด "เข้างาน" ปกติทิ้งไว้ แต่ลากยาวจนเข้าช่วง OT -> บังคับให้ออกงานก่อนเท่านั้น
+        if (isCurrentlyInNormal && isOTTime) {
+            btnIn.innerText = "▶️ เข้างาน (OT)";
             btnIn.style.opacity = "0.5"; 
             btnIn.onclick = () => alert("⚠️ กรุณากด 'ออกงาน' ตามปกติให้เรียบร้อยก่อนครับ จึงจะเข้า OT ได้");
             
             btnOut.innerText = "⏹️ ออกงาน";
             btnOut.onclick = () => checkIn('ออกงาน'); 
         } 
-        // 2. ถ้ากด "ออกงาน" ปกติไปแล้ว
-        else if (isCurrentlyOutNormal) {
-            if (isOTTime) {
-                // ถึงเวลา OT แล้ว -> เปิดให้เข้า OT ได้
-                btnIn.innerText = "▶️ เข้างาน (OT)";
-                btnIn.onclick = () => checkIn('เข้างาน(OT)');
-                
-                btnOut.innerText = "⏹️ ออกงาน (OT)";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน (OT)' ก่อนครับ");
-            } else {
-                // ยังไม่ถึงเวลา OT -> แจ้งเตือนให้รอ
-                btnIn.innerText = "▶️ เข้างาน";
-                btnIn.style.opacity = "0.5";
-                btnIn.onclick = () => alert("⚠️ คุณได้ออกงานปกติไปแล้ว (รอเริ่ม OT หลัง 17:00 น.)");
-                
-                btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ คุณได้ออกงานไปแล้วครับ");
-            }
-        }
-        // 3. ถ้ากำลังเข้า OT อยู่
-        else if (isCurrentlyInOT) {
-            btnIn.innerText = "▶️ เข้างาน (OT)";
-            btnIn.style.opacity = "0.5";
-            btnIn.onclick = () => alert("⚠️ คุณกำลังอยู่ในช่วงเวลาทำ OT ครับ");
-            
-            btnOut.innerText = "⏹️ ออกงาน (OT)";
-            btnOut.onclick = () => checkIn('ออกงาน(OT)');
-        }
-        // 4. ถ้ายังไม่ได้เข้างานเลย หรือจบการทำงานไปแล้ว
         else {
+            // ปลดล็อกให้กด เข้า/ออก ได้อิสระตลอดเวลา (เปลี่ยนแค่ชื่อตามช่วงเวลา)
             if (isOTTime) {
                 btnIn.innerText = "▶️ เข้างาน (OT)";
                 btnIn.onclick = () => checkIn('เข้างาน(OT)');
                 
                 btnOut.innerText = "⏹️ ออกงาน (OT)";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน (OT)' ก่อนครับ");
+                btnOut.onclick = () => checkIn('ออกงาน(OT)');
             } else {
                 btnIn.innerText = "▶️ เข้างาน";
                 btnIn.onclick = () => checkIn('เข้างาน');
                 
                 btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.style.opacity = "0.5";
-                btnOut.onclick = () => alert("⚠️ กรุณากด 'เข้างาน' ก่อนครับ");
+                btnOut.onclick = () => checkIn('ออกงาน');
             }
         }
     }
