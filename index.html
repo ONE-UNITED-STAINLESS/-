@@ -563,11 +563,7 @@
                     <option value="เสนอแนะ / สอบถาม HR">เสนอแนะ / สอบถาม HR</option>
                     <option value="คำขออื่นๆ (ทั่วไป)">คำขออื่นๆ (ทั่วไป)</option>
                 </select>
-                <div class="flex-gap">
-                    <div style="width:100%;"><label style="font-size:12px;">หัวข้อ / เรื่องที่ขอ:</label><input type="text" id="otherTitle" placeholder="ระบุหัวข้อคำขอ..."></div>
-                    <div style="width:100%;"><label style="font-size:12px;">วันที่ระบุ/เป้าหมาย:</label><input type="date" id="otherDate"></div>
-                </div>
-                <textarea id="otherReason" rows="2" placeholder="ระบุรายละเอียดคำขออย่างชัดเจน..."></textarea>
+                <textarea id="otherReason" rows="3" placeholder="ระบุเหตุผลหรือรายละเอียดคำขออย่างชัดเจน..."></textarea>
                 <input type="file" id="otherFile" accept="image/*,application/pdf" style="padding: 8px;">
                 <button class="btn-primary" onclick="submitRequest('other')" style="width: 100%; margin-top: 10px; background: #0284c7;">ส่งคำขออื่นๆ</button>
             </div>
@@ -753,6 +749,20 @@
                         </div>
                     </div>
                     <button class="btn-primary" style="margin-top: 15px; width: 100%; font-size: 13px; font-weight: 600; background-color: #3b82f6;">🔍 เปิดดูรายการคำขอลางาน</button>
+                </div>
+
+                <div class="card" style="padding: 20px; border-left: 5px solid #0284c7; cursor: pointer; transition: transform 0.2s;" onclick="openRequestsListModal('other')">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; font-size: 16px; color: var(--dark);">💡 คำขออื่นๆ</h4>
+                            <span style="font-size: 12px; color: var(--gray);">เบิกค่าใช้จ่าย / ขอเอกสาร / แจ้งปัญหา / อื่นๆ</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 id="cardPendingOtherCount" style="margin: 0; color: #0284c7; font-size: 26px; font-weight: 800;">0</h3>
+                            <span style="font-size: 11px; color: var(--gray);">รออนุมัติ</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 15px; width: 100%; font-size: 13px; font-weight: 600; background-color: #0284c7;">🔍 เปิดดูรายการคำขออื่นๆ</button>
                 </div>
             </div>
         </div>
@@ -1708,13 +1718,9 @@
         }
         else {
             params.other_category = document.getElementById('otherCategory').value;
-            params.other_title = document.getElementById('otherTitle').value;
-            params.other_date = document.getElementById('otherDate').value;
+            params.other_title = params.other_category;
+            params.other_date = '';
             params.reason = document.getElementById('otherReason').value;
-            if (!params.other_title || params.other_title.trim() === '') {
-                document.getElementById('reqMsg').innerText = "❌ กรุณาระบุหัวข้อคำขอ";
-                return;
-            }
         }
         
         if(!params.reason || params.reason.trim() === '') {
@@ -2229,26 +2235,31 @@
         return new Date(str).getTime() || 0;
     }
 
-    let hrRawRequests = { time: [], leave: [] };
+    let hrRawRequests = { time: [], leave: [], other: [] };
     let currentReqFilter = 'time';
 
     function loadRequests(autoOpenModal = false) {
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_requests'}) }).then(r=>r.json()).then(d => {
             hrRawRequests.time = d.time || [];
             hrRawRequests.leave = d.leave || [];
+            hrRawRequests.other = d.other || [];
 
             let pendingTimeCount = hrRawRequests.time.filter(i => (currentRole === 'hr' ? i[8] : i[7]) === 'Pending').length;
             let pendingLeaveCount = hrRawRequests.leave.filter(i => (currentRole === 'hr' ? i[10] : i[9]) === 'Pending').length;
+            let pendingOtherCount = hrRawRequests.other.filter(i => (currentRole === 'hr' ? i.hr_status : i.emp_status) === 'Pending').length;
 
-            document.getElementById('cardPendingTimeCount').innerText = pendingTimeCount;
-            document.getElementById('cardPendingLeaveCount').innerText = pendingLeaveCount;
+            if (document.getElementById('cardPendingTimeCount')) document.getElementById('cardPendingTimeCount').innerText = pendingTimeCount;
+            if (document.getElementById('cardPendingLeaveCount')) document.getElementById('cardPendingLeaveCount').innerText = pendingLeaveCount;
+            if (document.getElementById('cardPendingOtherCount')) document.getElementById('cardPendingOtherCount').innerText = pendingOtherCount;
 
             let mTimeEl = document.getElementById('modalTimeCount');
             let mLeaveEl = document.getElementById('modalLeaveCount');
+            let mOtherEl = document.getElementById('modalOtherCount');
             if (mTimeEl) mTimeEl.innerText = pendingTimeCount;
             if (mLeaveEl) mLeaveEl.innerText = pendingLeaveCount;
+            if (mOtherEl) mOtherEl.innerText = pendingOtherCount;
 
-            updatePendingBadge(pendingTimeCount + pendingLeaveCount);
+            updatePendingBadge(pendingTimeCount + pendingLeaveCount + pendingOtherCount);
 
             renderModalReqList();
 
@@ -2262,13 +2273,10 @@
         currentReqFilter = type;
         let btnTime = document.getElementById('btnFilterReqTime');
         let btnLeave = document.getElementById('btnFilterReqLeave');
-        if (type === 'time') {
-            btnTime.className = 'btn-primary';
-            btnLeave.className = 'btn-grey';
-        } else {
-            btnTime.className = 'btn-grey';
-            btnLeave.className = 'btn-primary';
-        }
+        let btnOther = document.getElementById('btnFilterReqOther');
+        if (btnTime) btnTime.className = (type === 'time' ? 'btn-primary' : 'btn-grey');
+        if (btnLeave) btnLeave.className = (type === 'leave' ? 'btn-primary' : 'btn-grey');
+        if (btnOther) btnOther.className = (type === 'other' ? 'btn-primary' : 'btn-grey');
         renderModalReqList();
     }
 
@@ -2277,15 +2285,17 @@
         if (!tb) return;
         tb.innerHTML = '';
 
-        let items = currentReqFilter === 'time' ? hrRawRequests.time : hrRawRequests.leave;
-        let sheetName = currentReqFilter === 'time' ? 'TimeRequests' : 'Leaves';
+        let items = currentReqFilter === 'time' ? (hrRawRequests.time || []) : (currentReqFilter === 'leave' ? (hrRawRequests.leave || []) : (hrRawRequests.other || []));
+        let sheetName = currentReqFilter === 'time' ? 'TimeRequests' : (currentReqFilter === 'leave' ? 'Leaves' : 'OtherRequests');
 
         let sortedItems = [...items].sort((a, b) => {
-            let stA = currentRole === 'hr' ? (currentReqFilter === 'time' ? a[8] : a[10]) : (currentReqFilter === 'time' ? a[7] : a[9]);
-            let stB = currentRole === 'hr' ? (currentReqFilter === 'time' ? b[8] : b[10]) : (currentReqFilter === 'time' ? b[7] : b[9]);
+            let stA = Array.isArray(a) ? (currentRole === 'hr' ? (currentReqFilter === 'time' ? a[8] : a[10]) : (currentReqFilter === 'time' ? a[7] : a[9])) : (a.status || a.hr_status);
+            let stB = Array.isArray(b) ? (currentRole === 'hr' ? (currentReqFilter === 'time' ? b[8] : b[10]) : (currentReqFilter === 'time' ? b[7] : b[9])) : (b.status || b.hr_status);
             if (stA === 'Pending' && stB !== 'Pending') return -1;
             if (stA !== 'Pending' && stB === 'Pending') return 1;
-            return parseThaiDateTime(b[1]) - parseThaiDateTime(a[1]);
+            let dateA = Array.isArray(a) ? parseThaiDateTime(a[1]) : parseThaiDateTime(a.date);
+            let dateB = Array.isArray(b) ? parseThaiDateTime(b[1]) : parseThaiDateTime(b.date);
+            return dateB - dateA;
         });
 
         if (sortedItems.length === 0) {
@@ -2294,17 +2304,31 @@
         }
 
         sortedItems.forEach(i => {
-            let status = currentRole === 'hr' ? (currentReqFilter === 'time' ? i[8] : i[10]) : (currentReqFilter === 'time' ? i[7] : i[9]);
-            let empName = i[2];
-            let reqDate = i[1] ? i[1].split(' ')[0] : '-';
-            let reqType = i[3];
-            let reason = currentReqFilter === 'time' ? (i[5] || '-') : (i[7] || '-');
-            let targetDetail = currentReqFilter === 'time' ? i[4] : `${i[4]} ถึง ${i[5]}`;
+            let reqId, status, empName, reqDate, reqType, reason, targetDetail;
+
+            if (Array.isArray(i)) {
+                reqId = i[0];
+                status = currentRole === 'hr' ? (currentReqFilter === 'time' ? i[8] : i[10]) : (currentReqFilter === 'time' ? i[7] : i[9]);
+                empName = i[2];
+                reqDate = i[1] ? i[1].split(' ')[0] : '-';
+                reqType = i[3];
+                reason = currentReqFilter === 'time' ? (i[5] || '-') : (i[7] || '-');
+                targetDetail = currentReqFilter === 'time' ? i[4] : `${i[4]} ถึง ${i[5]}`;
+            } else {
+                reqId = i.id;
+                status = i.status || i.hr_status;
+                empName = i.username;
+                reqDate = i.date ? i.date.split(' ')[0] : '-';
+                reqType = '💡 ' + (i.category || 'คำขออื่นๆ');
+                reason = i.reason || '-';
+                targetDetail = i.title || '-';
+            }
+
             let statusText = status === 'Approved' ? 'อนุมัติแล้ว' : (status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
             let statusClass = `status-${status}`;
 
             tb.innerHTML += `
-                <tr onclick="openRequestDetailModal('${sheetName}', '${i[0]}')" style="cursor:pointer;" title="คลิกเพื่อดูและพิจารณาคำขอ">
+                <tr onclick="openRequestDetailModal('${sheetName}', '${reqId}')" style="cursor:pointer;" title="คลิกเพื่อดูและพิจารณาคำขอ">
                     <td><b style="color:var(--primary); font-size:13px;">${empName}</b><br><span style="font-size:11px; color:var(--gray);">${reqDate}</span></td>
                     <td><b style="font-size:13px; color:var(--dark);">${reqType}</b><br><span style="font-size:11px; color:var(--gray); display:block; word-break:break-word;">เหตุผล: ${reason}</span></td>
                     <td style="font-size:12px; white-space:nowrap;">${targetDetail}</td>
