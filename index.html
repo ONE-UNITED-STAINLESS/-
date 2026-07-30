@@ -422,7 +422,7 @@
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
-                <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.0 ✨ อัปเดต</span></h2>
+                <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.1 ✨ อัปเดต</span></h2>
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockEmp" class="header-clock" style="margin-right: 4px;">00:00:00</div>
@@ -593,7 +593,7 @@
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
-                <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.0 ✨ อัปเดต</span></h2>
+                <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.1 ✨ อัปเดต</span></h2>
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockAdmin" class="header-clock" style="margin-right: 4px;">00:00:00</div>
@@ -874,16 +874,22 @@
             <button onclick="closeVersionModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">✕</button>
         </div>
         <div style="overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
-            <!-- VERSION 2.6.0 -->
+            <!-- VERSION 2.6.1 -->
             <div style="background: #f0f9ff; border-left: 4px solid #0284c7; padding: 14px; border-radius: 8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <b style="color: #0369a1; font-size: 14px;">v2.6.0 ✨ ระบบกล่องแจ้งเตือนพนักงาน & HR Inbox</b>
+                    <b style="color: #0369a1; font-size: 14px;">v2.6.1 ✨ อัปเดตการซิงค์แจ้งเตือนเรียลไทม์ & การแจ้งเตือนระบบ</b>
                     <span style="font-size: 11px; background: #0284c7; color: white; padding: 2px 8px; border-radius: 10px; font-weight: 700;">ล่าสุด</span>
                 </div>
                 <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #334155; line-height: 1.6;">
-                    <li><b>🔔 กล่องแจ้งเตือนพนักงาน (Employee Notification Box)</b>: มีปุ่มกระดิ่งมุมขวาพร้อมตัวเลขแจ้งเตือน (Unread Badge) แสดงผลอนุมัติจาก HR และประกาศบริษัท พร้อมสถานะ อ่านแล้ว/ยังไม่อ่าน</li>
-                    <li><b>📥 กล่องคำขอเข้าใหม่สำหรับ HR (HR Inbox Notification)</b>: แสดงผลคำขอแก้ไขเวลาและคำขอลางานจากพนักงานทันทีที่ยื่นเข้ามา พร้อมปุ่มวาร์ปไปตรวจสอบอนุมัติ</li>
-                    <li><b>🧹 ล้างตัวอักษรขยะและ Tab ซ่อนในฐานข้อมูล MySQL</b>: ทำความสะอาดข้อมูลชื่อและข้อความทั้งหมดให้สะอาด 100%</li>
+                    <li><b>⚡ ซิงค์กล่องคำขอและการแจ้งเตือนเรียลไทม์ (Auto Polling)</b>: พนักงานยื่นคำขอ ปรากฏในกล่อง HR ทันที! HR กดอนุมัติ/ปฏิเสธ เด้งเข้ากระดิ่งพนักงานอัตโนมัติไม่ต้องรีเฟรชหน้าเว็บ</li>
+                    <li><b>🚀 ระบบบรอดแคสต์แจ้งเตือนเวอร์ชันใหม่</b>: ส่งข้อความแจ้งเตือนเวอร์ชันอัปเดตใหม่เข้ากล่องข้อความของทุกคนในระบบ</li>
+                </ul>
+            </div>
+            <!-- VERSION 2.6.0 -->
+            <div style="background: #f8fafc; border-left: 4px solid #64748b; padding: 12px; border-radius: 8px;">
+                <b style="color: #334155; font-size: 13px;">v2.6.0 ✨ ระบบกล่องแจ้งเตือนพนักงาน & HR Inbox</b>
+                <ul style="margin: 4px 0 0 0; padding-left: 18px; font-size: 12px; color: #475569; line-height: 1.5;">
+                    <li>เพิ่มกล่องแจ้งเตือนกระดิ่ง 🔔 และ HR Inbox 📥 พร้อมระบบนับจำนวนยังไม่อ่าน</li>
                 </ul>
             </div>
             <!-- VERSION 2.5.0 -->
@@ -1675,7 +1681,7 @@
         if(fileInput.files.length > 0) { let reader = new FileReader(); reader.onload = function(e) { params.imageBase64 = e.target.result.split(',')[1]; sendReqData(params); }; reader.readAsDataURL(fileInput.files[0]); } else { sendReqData(params); }
     }
     
-    function sendReqData(params) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; loadMyRequests(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); }); }
+    function sendReqData(params) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; loadMyRequests(); refreshInitData(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); }); }
 
     function loadMyRequests() {
         let tb = document.getElementById('tb-my-reqs'); tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดสถานะ...</td></tr>';
@@ -2330,6 +2336,7 @@
             closeRequestDetailModal();
             loadRequests(); 
             loadDashboard(); 
+            refreshInitData();
         }); 
     }
     
@@ -3280,14 +3287,48 @@
     }
 
     // =========================================================
-    // 16. NOTIFICATION SYSTEM (v2.6.0)
+    // 16. NOTIFICATION SYSTEM (v2.6.1 Realtime Sync)
     // =========================================================
     let empNotificationsList = [];
     let hrNotificationsData = { time: [], leave: [] };
 
+    function refreshInitData() {
+        if (!currentUser || !currentRole) return;
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: new URLSearchParams({
+                action: 'init_app', 
+                role: currentRole, 
+                username: currentUser
+            }) 
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') {
+                applyInitData(d);
+            }
+        })
+        .catch(e => console.warn("Background notification refresh failed:", e));
+    }
+
+    // Real-time silent background sync every 12 seconds
+    setInterval(refreshInitData, 12000);
+
     function processEmpNotifications(myReqs, announcements) {
         let list = [];
         let readIds = JSON.parse(localStorage.getItem('emp_read_notifs_' + currentUser) || '[]');
+
+        // 1. Broadcast System Update Notification for v2.6.1
+        list.push({
+            id: 'sys_v261_update',
+            rawId: 'v261',
+            type: 'system',
+            icon: '🚀',
+            title: 'อัปเดตรบบใหม่ v2.6.1 ✨ (เรียลไทม์)',
+            content: 'ระบบซิงค์แจ้งเตือนเรียลไทม์! เมื่อส่งคำขอ ข้อมูลจะเข้ากล่อง HR ทันที และเมื่อ HR อนุมัติ ผลจะเข้ากระดิ่งแจ้งเตือนพนักงานอัตโนมัติ',
+            date: '30/07/2026',
+            status: 'System'
+        });
 
         if (myReqs && myReqs.time) {
             myReqs.time.forEach(r => {
@@ -3368,6 +3409,7 @@
     }
 
     function openEmpNotifModal() {
+        refreshInitData();
         renderEmpNotifList();
         let modal = document.getElementById('empNotifModal');
         if (modal) modal.classList.remove('hidden');
@@ -3468,6 +3510,7 @@
     }
 
     function openHrNotifModal() {
+        refreshInitData();
         renderHrNotifList();
         let modal = document.getElementById('hrNotifModal');
         if (modal) modal.classList.remove('hidden');
