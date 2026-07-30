@@ -277,9 +277,10 @@
                 </div>
                 <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #334155; line-height: 1.6;">
                     <li><b>📢 ระบบข่าวสารและประกาศจาก HR:</b> HR สามารถพิมพ์ข้อความแนบรูปภาพประกาศแจ้งพนักงานในหน้าแรกได้</li>
-                    <li><b>⏰ สรุปสถิติ OT:</b> พนักงานและ HR ดูจำนวนครั้งและวันทำ OT ประจำเดือนได้</li>
+                    <li><b>⏰ สรุปสถิติ OT:</b> พนักงานและ HR ดูจำนวนครั้งและวันทำ OT สะสมประจำเดือนได้</li>
+                    <li><b>🖼️ ระบบพรีวิวรูปภาพ Dual-Preview:</b> รองรับพรีวิวรูปภาพทั้ง Google Drive และรูปในเครื่อง (/uploads/...)</li>
                     <li><b>📅 ปรับแต่งแถบปฏิทิน:</b> แถบสลับเดือนปฏิทินแสดงผลแนวนอนพอดีหน้าจอทั้งคอมพิวเตอร์และมือถือ</li>
-                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:00) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
+                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:30) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
                 </ul>
             </div>
 
@@ -522,7 +523,9 @@
 
         <div id="emp-tab-request" class="hidden">
             <select id="reqType" onchange="toggleReqForm()">
-                <option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option><option value="leave">ส่งคำขอลาหยุด</option>
+                <option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option>
+                <option value="leave">ส่งคำขอลาหยุด</option>
+                <option value="other">💡 ส่งคำขออื่นๆ (เบิกค่าใช้จ่าย / ขอเอกสาร / อื่นๆ)</option>
             </select>
             
             <div id="formTimeEdit" class="edit-box" style="background:#fffbeb; border-color:#fef08a;">
@@ -549,6 +552,24 @@
                 </div>
                 <textarea id="leaveReason" rows="2" placeholder="ระบุเหตุผลการลาอย่างละเอียด..."></textarea><input type="file" id="leaveFile" accept="image/*,application/pdf" style="padding: 8px;">
                 <button class="btn-primary" onclick="submitRequest('leave')" style="width: 100%; margin-top: 10px;">ส่งคำขอลา</button>
+            </div>
+
+            <div id="formOther" class="edit-box hidden" style="background:#f0f9ff; border-color:#bae6fd;">
+                <h3 style="color:#0369a1; margin-top:0; font-size: 16px;">💡 ส่งคำขออื่นๆ</h3>
+                <select id="otherCategory">
+                    <option value="เบิกค่าใช้จ่าย / สวัสดิการ">เบิกค่าใช้จ่าย / สวัสดิการ</option>
+                    <option value="ขอหนังสือรับรอง / เอกสาร">ขอหนังสือรับรอง / เอกสาร</option>
+                    <option value="แจ้งปัญหาอุปกรณ์ / เครื่องมือ">แจ้งปัญหาอุปกรณ์ / เครื่องมือ</option>
+                    <option value="เสนอแนะ / สอบถาม HR">เสนอแนะ / สอบถาม HR</option>
+                    <option value="คำขออื่นๆ (ทั่วไป)">คำขออื่นๆ (ทั่วไป)</option>
+                </select>
+                <div class="flex-gap">
+                    <div style="width:100%;"><label style="font-size:12px;">หัวข้อ / เรื่องที่ขอ:</label><input type="text" id="otherTitle" placeholder="ระบุหัวข้อคำขอ..."></div>
+                    <div style="width:100%;"><label style="font-size:12px;">วันที่ระบุ/เป้าหมาย:</label><input type="date" id="otherDate"></div>
+                </div>
+                <textarea id="otherReason" rows="2" placeholder="ระบุรายละเอียดคำขออย่างชัดเจน..."></textarea>
+                <input type="file" id="otherFile" accept="image/*,application/pdf" style="padding: 8px;">
+                <button class="btn-primary" onclick="submitRequest('other')" style="width: 100%; margin-top: 10px; background: #0284c7;">ส่งคำขออื่นๆ</button>
             </div>
             <p id="reqMsg" class="text-center mt-3" style="color:var(--success); font-weight:600;"></p>
 
@@ -1210,6 +1231,9 @@
         if (d.hr_notifications) {
             processHrNotifications(d.hr_notifications);
         }
+        if (d.dashboard) {
+            renderDashboard(d.dashboard);
+        }
     }
 
     // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน (พื้นหลัง)
@@ -1667,17 +1691,44 @@
 
 
     function submitRequest(type) {
-        document.getElementById('reqMsg').innerText = "กำลังส่ง..."; let fileInput = type === 'time' ? document.getElementById('timeFile') : document.getElementById('leaveFile');
+        document.getElementById('reqMsg').innerText = "กำลังส่ง..."; 
+        let fileInput = type === 'time' ? document.getElementById('timeFile') : (type === 'leave' ? document.getElementById('leaveFile') : document.getElementById('otherFile'));
         let params = { action: 'submit_request', req_type: type, username: currentUser };
-        if(type === 'time') { params.edit_type = document.getElementById('timeEditType').value; params.edit_date = document.getElementById('timeEditDate').value; params.edit_time = document.getElementById('timeEditTime').value; params.reason = document.getElementById('timeReason').value; } 
-        else { params.leave_type = document.getElementById('leaveType').value; params.start_date = document.getElementById('leaveStart').value; params.end_date = document.getElementById('leaveEnd').value; params.reason = document.getElementById('leaveReason').value; }
+        if (type === 'time') { 
+            params.edit_type = document.getElementById('timeEditType').value; 
+            params.edit_date = document.getElementById('timeEditDate').value; 
+            params.edit_time = document.getElementById('timeEditTime').value; 
+            params.reason = document.getElementById('timeReason').value; 
+        } 
+        else if (type === 'leave') { 
+            params.leave_type = document.getElementById('leaveType').value; 
+            params.start_date = document.getElementById('leaveStart').value; 
+            params.end_date = document.getElementById('leaveEnd').value; 
+            params.reason = document.getElementById('leaveReason').value; 
+        }
+        else {
+            params.other_category = document.getElementById('otherCategory').value;
+            params.other_title = document.getElementById('otherTitle').value;
+            params.other_date = document.getElementById('otherDate').value;
+            params.reason = document.getElementById('otherReason').value;
+            if (!params.other_title || params.other_title.trim() === '') {
+                document.getElementById('reqMsg').innerText = "❌ กรุณาระบุหัวข้อคำขอ";
+                return;
+            }
+        }
         
         if(!params.reason || params.reason.trim() === '') {
-            document.getElementById('reqMsg').innerText = "❌ กรุณาระบุเหตุผลให้ชัดเจน";
+            document.getElementById('reqMsg').innerText = "❌ กรุณาระบุเหตุผลหรือรายละเอียดให้ชัดเจน";
             return;
         }
         
-        if(fileInput.files.length > 0) { let reader = new FileReader(); reader.onload = function(e) { params.imageBase64 = e.target.result.split(',')[1]; sendReqData(params); }; reader.readAsDataURL(fileInput.files[0]); } else { sendReqData(params); }
+        if(fileInput && fileInput.files && fileInput.files.length > 0) { 
+            let reader = new FileReader(); 
+            reader.onload = function(e) { params.imageBase64 = e.target.result.split(',')[1]; sendReqData(params); }; 
+            reader.readAsDataURL(fileInput.files[0]); 
+        } else { 
+            sendReqData(params); 
+        }
     }
     
     function sendReqData(params) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; loadMyRequests(); refreshInitData(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); }); }
@@ -1687,13 +1738,15 @@
         
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_requests', username: currentUser}) }).then(r=>r.json()).then(d => {
             tb.innerHTML = '';
-            if(d.time.length === 0 && d.leave.length === 0) { tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">ไม่มีประวัติการส่งคำขอ</td></tr>'; return; }
+            let timeLogs = d.time || [];
+            let leaveLogs = d.leave || [];
+            let otherLogs = d.other || [];
+
+            if(timeLogs.length === 0 && leaveLogs.length === 0 && otherLogs.length === 0) { tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">ไม่มีประวัติการส่งคำขอ</td></tr>'; return; }
             
             // นำข้อมูลใหม่ล่าสุดขึ้นก่อน
-            let myTimeLogs = d.time.reverse();
-            myTimeLogs.forEach(i => { 
+            timeLogs.reverse().forEach(i => { 
                 let statusText = i[8] === 'Approved' ? 'อนุมัติแล้ว' : (i[8] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); 
-                
                 let reason = i[6] ? i[6] : '-';
                 let imgUrl = isValidImageUrl(i[7]) ? i[7] : (isValidImageUrl(i[6]) ? i[6] : null);
                 if(imgUrl === i[6]) reason = i[5] ? i[5] : '-';
@@ -1707,11 +1760,8 @@
                 </tr>`; 
             });
 
-            // นำข้อมูลใหม่ล่าสุดขึ้นก่อน
-            let myLeaveLogs = d.leave.reverse();
-            myLeaveLogs.forEach(i => { 
+            leaveLogs.reverse().forEach(i => { 
                 let statusText = i[10] === 'Approved' ? 'อนุมัติแล้ว' : (i[10] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); 
-                
                 let reason = i[7] ? i[7] : '-';
                 let imgUrl = isValidImageUrl(i[8]) ? i[8] : (isValidImageUrl(i[9]) ? i[9] : null);
                 let imgHtml = imgUrl ? `<button onclick="openImageModal('${imgUrl}')" style="cursor:pointer; border:none; background:#eef2f6; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:9px; color:var(--dark); font-weight:600; display:inline-block; margin-top:3px;">🖼️ ดูรูป/เอกสาร</button>` : '';
@@ -1722,6 +1772,19 @@
                     <td style="padding:6px 4px; font-size:10px; color:#475569; white-space:nowrap;">${i[1].split(' ')[0]}</td>
                     <td style="padding:6px 4px; text-align:center;"><span class="status-${i[10]}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span></td>
                 </tr>`; 
+            });
+
+            otherLogs.reverse().forEach(i => {
+                let statusText = i.hr_status === 'Approved' ? 'อนุมัติแล้ว' : (i.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
+                let imgUrl = isValidImageUrl(i.file_url) ? i.file_url : null;
+                let imgHtml = imgUrl ? `<button onclick="openImageModal('${imgUrl}')" style="cursor:pointer; border:none; background:#eef2f6; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:9px; color:var(--dark); font-weight:600; display:inline-block; margin-top:3px;">🖼️ ดูรูป/เอกสาร</button>` : '';
+
+                tb.innerHTML += `<tr>
+                    <td style="padding:6px 4px; font-size:11px;"><b style="color:#0284c7;">💡 อื่นๆ</b><br><span style="font-size:10px; color:#64748b;">${i.category || 'คำขออื่นๆ'}</span></td>
+                    <td style="padding:6px 4px; font-size:11px; line-height:1.3;"><span style="color:#1e293b; font-weight:600;">${i.title}</span><br><span style="font-size:10px; color:#64748b;">รายละเอียด: ${i.reason}</span><br>${imgHtml}</td>
+                    <td style="padding:6px 4px; font-size:10px; color:#475569; white-space:nowrap;">${(i.date || '').split(' ')[0]}</td>
+                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i.hr_status}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span></td>
+                </tr>`;
             });
         });
     }
@@ -2263,24 +2326,43 @@
     }
 
     function openRequestDetailModal(sheet, reqId) {
-        let items = sheet === 'TimeRequests' ? hrRawRequests.time : hrRawRequests.leave;
-        let item = items.find(r => r[0] === reqId);
+        let items = sheet === 'TimeRequests' ? (hrRawRequests.time || []) : ((sheet === 'LeaveRequests' || sheet === 'Leaves') ? (hrRawRequests.leave || []) : (hrNotificationsData.other || []));
+        let item = items.find(r => (Array.isArray(r) ? r[0] === reqId : r.id === reqId));
         if (!item) return;
 
-        let status = currentRole === 'hr' ? (sheet === 'TimeRequests' ? item[8] : item[10]) : (sheet === 'TimeRequests' ? item[7] : item[9]);
-        let empName = item[2];
-        let reqDate = item[1];
-        let reqType = item[3];
-        let targetDetail = sheet === 'TimeRequests' ? item[4] : `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
-        let reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
-        let imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
+        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl;
 
-        document.getElementById('reqModalTitle').innerText = sheet === 'TimeRequests' ? '📝 พิจารณาคำขอแก้ไขเวลาทำงาน' : '🗓️ พิจารณาคำขอลางาน';
+        if (Array.isArray(item)) {
+            status = currentRole === 'hr' ? (sheet === 'TimeRequests' ? item[8] : item[10]) : (sheet === 'TimeRequests' ? item[7] : item[9]);
+            empName = item[2];
+            reqDate = item[1];
+            reqType = item[3];
+            targetDetail = sheet === 'TimeRequests' ? item[4] : `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
+            reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
+            imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
+        } else {
+            status = item.status || item.hr_status;
+            empName = item.username;
+            reqDate = item.date;
+            reqType = '💡 ' + (item.category || 'คำขออื่นๆ');
+            targetDetail = item.title || '-';
+            reason = item.reason || '-';
+            imgUrl = item.file_url;
+        }
+
+        document.getElementById('reqModalTitle').innerText = sheet === 'TimeRequests' ? '📝 พิจารณาคำขอแก้ไขเวลาทำงาน' : (sheet === 'OtherRequests' ? '💡 พิจารณาคำขออื่นๆ' : '🗓️ พิจารณาคำขอลางาน');
         document.getElementById('reqModalEmpName').innerText = empName;
         document.getElementById('reqModalRequestDate').innerText = reqDate;
         document.getElementById('reqModalType').innerText = reqType;
         document.getElementById('reqModalTargetDetail').innerText = targetDetail;
         document.getElementById('reqModalReason').innerText = reason;
+
+        let btnApprove = document.getElementById('btnReqApprove');
+        let btnReject = document.getElementById('btnReqReject');
+        if (btnApprove && btnReject) {
+            btnApprove.onclick = function() { approveReq(sheet, reqId, 'Approved'); };
+            btnReject.onclick = function() { approveReq(sheet, reqId, 'Rejected'); };
+        }
 
         let badgeEl = document.getElementById('reqModalStatusBadge');
         badgeEl.className = `status-${status}`;
@@ -3290,9 +3372,11 @@
     // =========================================================
     let empNotificationsList = [];
     let hrNotificationsData = { time: [], leave: [] };
+    let isRefreshingInit = false;
 
     function refreshInitData() {
-        if (!currentUser || !currentRole) return;
+        if (!currentUser || !currentRole || isRefreshingInit) return;
+        isRefreshingInit = true;
         fetch(scriptURL, { 
             method: 'POST', 
             body: new URLSearchParams({
@@ -3303,15 +3387,19 @@
         })
         .then(r => r.json())
         .then(d => {
+            isRefreshingInit = false;
             if (d.status === 'success') {
                 applyInitData(d);
             }
         })
-        .catch(e => console.warn("Background notification refresh failed:", e));
+        .catch(e => {
+            isRefreshingInit = false;
+            console.warn("Background notification refresh failed:", e);
+        });
     }
 
-    // Real-time silent background sync every 12 seconds
-    setInterval(refreshInitData, 12000);
+    // ⚡ Ultra-fast real-time silent background sync every 1 second (1000ms)
+    setInterval(refreshInitData, 1000);
 
     function processEmpNotifications(myReqs, announcements) {
         let list = [];
@@ -3357,6 +3445,23 @@
                     icon: icon,
                     title: `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}`,
                     content: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`,
+                    date: r.date,
+                    status: r.hr_status
+                });
+            });
+        }
+
+        if (myReqs && myReqs.other) {
+            myReqs.other.forEach(r => {
+                let statusStr = r.hr_status === 'Approved' ? 'อนุมัติเรียบร้อย' : (r.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอพิจารณา');
+                let icon = r.hr_status === 'Approved' ? '✅' : (r.hr_status === 'Rejected' ? '❌' : '⏳');
+                list.push({
+                    id: 'other_' + r.id + '_' + r.hr_status,
+                    rawId: r.id,
+                    type: 'other',
+                    icon: icon,
+                    title: `คำขออื่นๆ (${r.category}): ${statusStr}`,
+                    content: `เรื่อง: ${r.title} | รายละเอียด: ${r.reason}`,
                     date: r.date,
                     status: r.hr_status
                 });
@@ -3481,7 +3586,8 @@
         hrNotificationsData = notifs;
         let pendingTimeCount = (notifs.time || []).filter(r => r.hr_status === 'Pending').length;
         let pendingLeaveCount = (notifs.leave || []).filter(r => r.hr_status === 'Pending').length;
-        let totalPending = pendingTimeCount + pendingLeaveCount;
+        let pendingOtherCount = (notifs.other || []).filter(r => r.hr_status === 'Pending').length;
+        let totalPending = pendingTimeCount + pendingLeaveCount + pendingOtherCount;
 
         updateHrNotifBadge(totalPending);
     }
@@ -3526,8 +3632,9 @@
 
         let timeReqs = hrNotificationsData.time || [];
         let leaveReqs = hrNotificationsData.leave || [];
+        let otherReqs = hrNotificationsData.other || [];
 
-        if (timeReqs.length === 0 && leaveReqs.length === 0) {
+        if (timeReqs.length === 0 && leaveReqs.length === 0 && otherReqs.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:var(--gray); font-size:13px; margin:20px 0;">ไม่มีคำขอเข้าใหม่ในระบบ</p>';
             return;
         }
@@ -3554,6 +3661,19 @@
                 typeTitle: '🗓️ ขอลาหยุด (' + r.leave_type + ' ' + r.days + ' วัน)',
                 username: r.username,
                 detail: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`,
+                date: r.date,
+                status: r.hr_status,
+                file_url: r.file_url
+            });
+        });
+
+        otherReqs.forEach(r => {
+            combined.push({
+                id: r.id,
+                sheet: 'OtherRequests',
+                typeTitle: '💡 คำขออื่นๆ (' + (r.category || 'ทั่วไป') + ')',
+                username: r.username,
+                detail: `เรื่อง: ${r.title} | รายละเอียด: ${r.reason}`,
                 date: r.date,
                 status: r.hr_status,
                 file_url: r.file_url
