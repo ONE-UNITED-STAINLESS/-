@@ -1440,7 +1440,20 @@
         }
     }
 
-    function toggleReqForm() { document.getElementById('reqType').value === 'time' ? (document.getElementById('formTimeEdit').classList.remove('hidden'), document.getElementById('formLeave').classList.add('hidden')) : (document.getElementById('formTimeEdit').classList.add('hidden'), document.getElementById('formLeave').classList.remove('hidden')); }
+    function toggleReqForm() {
+        let val = document.getElementById('reqType').value;
+        let fTime = document.getElementById('formTimeEdit');
+        let fLeave = document.getElementById('formLeave');
+        let fOther = document.getElementById('formOther');
+
+        if (fTime) fTime.classList.add('hidden');
+        if (fLeave) fLeave.classList.add('hidden');
+        if (fOther) fOther.classList.add('hidden');
+
+        if (val === 'time' && fTime) fTime.classList.remove('hidden');
+        else if (val === 'leave' && fLeave) fLeave.classList.remove('hidden');
+        else if (val === 'other' && fOther) fOther.classList.remove('hidden');
+    }
 
     function initGPS() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_locations'}) }).then(r=>r.json()).then(d => { allLocations = d.data; refreshGPS(); startCamera(); }); }
     function startCamera() { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => { videoStream = s; document.getElementById('videoElement').srcObject = s; }).catch(err => console.log("Camera error")); } }
