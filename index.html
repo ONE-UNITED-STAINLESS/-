@@ -280,7 +280,7 @@
                     <li><b>⏰ สรุปสถิติ OT:</b> พนักงานและ HR ดูจำนวนครั้งและวันทำ OT สะสมประจำเดือนได้</li>
                     <li><b>🖼️ ระบบพรีวิวรูปภาพ Dual-Preview:</b> รองรับพรีวิวรูปภาพทั้ง Google Drive และรูปในเครื่อง (/uploads/...)</li>
                     <li><b>📅 ปรับแต่งแถบปฏิทิน:</b> แถบสลับเดือนปฏิทินแสดงผลแนวนอนพอดีหน้าจอทั้งคอมพิวเตอร์และมือถือ</li>
-                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:00) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
+                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:30) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
                 </ul>
             </div>
 
@@ -3830,7 +3830,8 @@
                     title: `คำขอแก้ไขเวลา (${r.edit_type}): ${statusStr}`,
                     content: `วันที่เป้าหมาย: ${r.target_datetime} | เหตุผล: ${r.reason}`,
                     date: r.date,
-                    status: r.hr_status
+                    status: r.hr_status,
+                    image_url: r.file_url
                 });
             });
         }
@@ -3847,7 +3848,8 @@
                     title: `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}`,
                     content: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`,
                     date: r.date,
-                    status: r.hr_status
+                    status: r.hr_status,
+                    image_url: r.file_url
                 });
             });
         }
@@ -3864,7 +3866,8 @@
                     title: `คำขออื่นๆ (${r.category}): ${statusStr}`,
                     content: `เรื่อง: ${r.title} | รายละเอียด: ${r.reason}`,
                     date: r.date,
-                    status: r.hr_status
+                    status: r.hr_status,
+                    image_url: r.file_url
                 });
             });
         }
@@ -3879,7 +3882,8 @@
                     title: `ประกาศบริษัท: ${a.title}`,
                     content: a.content || 'มีประกาศใหม่จาก HR',
                     date: a.created_at,
-                    status: 'Announcement'
+                    status: 'Announcement',
+                    image_url: a.image_url
                 });
             });
         }
