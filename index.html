@@ -280,7 +280,7 @@
                     <li><b>⏰ สรุปสถิติ OT:</b> พนักงานและ HR ดูจำนวนครั้งและวันทำ OT สะสมประจำเดือนได้</li>
                     <li><b>🖼️ ระบบพรีวิวรูปภาพ Dual-Preview:</b> รองรับพรีวิวรูปภาพทั้ง Google Drive และรูปในเครื่อง (/uploads/...)</li>
                     <li><b>📅 ปรับแต่งแถบปฏิทิน:</b> แถบสลับเดือนปฏิทินแสดงผลแนวนอนพอดีหน้าจอทั้งคอมพิวเตอร์และมือถือ</li>
-                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:00) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
+                    <li><b>⏱️ คำนวณเข้าสายแม่นยำ:</b> คำนวณนาทีเข้างานเปรียบเทียบเวลาเริ่มงาน (08:30) พร้อมติดแท็กสายสีส้มอัตโนมัติ</li>
                 </ul>
             </div>
 
@@ -3806,15 +3806,31 @@
         let list = [];
         let readIds = JSON.parse(localStorage.getItem('emp_read_notifs_' + currentUser) || '[]');
 
-        // 1. Broadcast System Update Notification for v2.6.1
+        // 1. Broadcast System Update Notification for v2.7.0
         list.push({
-            id: 'sys_v261_update',
-            rawId: 'v261',
+            id: 'sys_v270_update',
+            rawId: 'v270',
             type: 'system',
             icon: '🚀',
-            title: 'อัปเดตรบบใหม่ v2.6.1 ✨ (เรียลไทม์)',
-            content: 'ระบบซิงค์แจ้งเตือนเรียลไทม์! เมื่อส่งคำขอ ข้อมูลจะเข้ากล่อง HR ทันที และเมื่อ HR อนุมัติ ผลจะเข้ากระดิ่งแจ้งเตือนพนักงานอัตโนมัติ',
-            date: '30/07/2026',
+            title: 'อัปเดตระบบใหม่ v2.7.0 ✨ (ระบบแจ้งเตือนแบบป๊อบอัพ & สิทธิ์อนุมัติ)',
+            content: `รายละเอียดการอัปเดตระบบ v2.7.0:
+
+1. 🔔 **กล่องแจ้งเตือนและป๊อบอัพรายละเอียดใหม่**:
+   - สามารถกดดูรายละเอียดข้อความ, ประกาศ และผลการอนุมัติในรูปแบบป๊อบอัพ (Popup) ได้อย่างรวดเร็ว
+   - แสดงป้ายสถานะ (อนุมัติ, ไม่อนุมัติ, รอพิจารณา, ประกาศ) และพรีวิวรูปภาพแนบชัดเจน
+   - ปรับการจัดเรียงให้รายการใหม่ล่าสุดขึ้นอยู่บนสุดเสมอ
+
+2. 🔒 **ระบบล็อกสิทธิ์การอนุมัติเฉพาะผู้มีอำนาจ (Target Approver)**:
+   - HR และแอดมินสามารถเปิดดูข้อมูลคำขอของพนักงานทุกคนได้ แต่จะไม่สามารถกดอนุมัติแทนหัวหน้างานที่ระบุส่งถึงได้
+   - มีเพียงผู้ที่มีชื่อเป็นผู้อนุมัติเป้าหมายเท่านั้นที่สามารถกดอนุมัติ/ปฏิเสธได้
+
+3. 📢 **ปรับปรุงระบบประกาศบริษัท (Announcements System)**:
+   - ปรับระบบปิดประกาศ 1 วัน (24 ชั่วโมง) และการปิดป๊อบอัพประกาศให้ทำงานเงียบ ไม่เด้งรบกวนระหว่างใช้งาน
+
+4. 👤 **ปรับปรุงระบบสิทธิ์และรายชื่อผู้ดูแล**:
+   - ปรับปรุงการลดสิทธิ์จาก HR กลับเป็นพนักงาน ให้ซ่อนหน้าจัดการผู้ดูแลทันที
+   - กรองรายชื่อ HR ออกจากดรอปดาวน์เลือกผู้อนุมัติส่วนตัว เพื่อให้คงเหลือเฉพาะ "🏢 HR / แอดมินกลาง"`,
+            date: '01/08/2026',
             status: 'System'
         });
 
@@ -3994,9 +4010,56 @@
         let imgContainer = document.getElementById('notifDetailImageContainer');
         let imgPreview = document.getElementById('notifDetailImgPreview');
         if (item.image_url && isValidImageUrl(item.image_url)) {
-            imgPreview.src = getFullImageUrl(item.image_url);
+            let fullUrl = getFullImageUrl(item.image_url);
+            let cacheKey = (item.type === 'anc' ? 'cached_anc_img_' : 'cached_img_') + item.rawId;
+            let cachedData = localStorage.getItem(cacheKey);
+            let driveId = getDriveFileId(fullUrl);
+
+            imgPreview.onerror = function() {
+                console.warn("imgPreview load error, falling back to fullUrl:", fullUrl);
+                try { localStorage.removeItem(cacheKey); } catch(e) {}
+                if (imgPreview.src !== fullUrl) {
+                    imgPreview.src = fullUrl;
+                    imgPreview.style.opacity = '1';
+                }
+            };
+
+            if (cachedData && cachedData.startsWith('data:image/')) {
+                imgPreview.src = cachedData;
+                imgPreview.style.opacity = '1';
+                imgContainer.classList.remove('hidden');
+            } else if (driveId) {
+                imgPreview.src = `https://lh3.googleusercontent.com/d/${driveId}`;
+                imgPreview.style.opacity = '1';
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.remove('hidden');
+                imgPreview.style.opacity = '0.5';
+
+                fetch(fullUrl, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+                .then(res => res.ok ? res.blob() : Promise.reject(res.status))
+                .then(blob => {
+                    let objectUrl = URL.createObjectURL(blob);
+                    imgPreview.src = objectUrl;
+                    imgPreview.style.opacity = '1';
+
+                    let reader = new FileReader();
+                    reader.onloadend = function() {
+                        try {
+                            if (reader.result && reader.result.startsWith('data:image/')) {
+                                localStorage.setItem(cacheKey, reader.result);
+                            }
+                        } catch(e) {}
+                    };
+                    reader.readAsDataURL(blob);
+                })
+                .catch(err => {
+                    imgPreview.src = fullUrl;
+                    imgPreview.style.opacity = '1';
+                });
+            }
+
             imgPreview.onclick = function() { openImageModal(item.image_url); };
-            imgContainer.classList.remove('hidden');
         } else {
             imgPreview.src = '';
             imgContainer.classList.add('hidden');
