@@ -1453,6 +1453,33 @@
         switchEmpTab('approvals');
     }
 
+    function switchToEmpView() {
+        document.getElementById('hrSec').classList.add('hidden');
+        document.getElementById('empSec').classList.remove('hidden');
+        document.getElementById('empName').innerText = currentRealName || currentUser;
+        
+        let btnHr = document.getElementById('btnSwitchToHrMode');
+        if (btnHr) btnHr.classList.remove('hidden');
+
+        if (!videoStream) startCamera();
+        refreshGPS();
+        switchEmpTab('checkin');
+    }
+
+    function switchToHrView() {
+        document.getElementById('empSec').classList.add('hidden');
+        document.getElementById('hrSec').classList.remove('hidden');
+        document.getElementById('roleTitle').innerText = (currentRole === 'supervisor' ? "Supervisor" : "HR Admin");
+        
+        if (currentRole === 'supervisor') {
+            if (document.getElementById('tabBtnSettings')) document.getElementById('tabBtnSettings').classList.add('hidden');
+            if (document.getElementById('addUserDiv')) document.getElementById('addUserDiv').classList.add('hidden'); 
+        }
+
+        loadDashboard();
+        loadRequests();
+    }
+
     // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน (พื้นหลัง)
     window.onload = function() {
         let savedUser = localStorage.getItem('work_checkin_user');
