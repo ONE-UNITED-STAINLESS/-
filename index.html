@@ -1409,10 +1409,23 @@
         if (d.my_supervisor !== undefined) mySupervisor = d.my_supervisor;
         populateApproverSelectors();
 
-        let isApprover = (d.user_can_approve == 1) || (availableApprovers && availableApprovers.some(a => a.username === currentUser && a.can_approve == 1));
+        if (d.user_role) {
+            currentRole = d.user_role;
+            localStorage.setItem('work_checkin_role', currentRole);
+        }
+
+        let isApproverOrAdmin = (d.user_can_approve == 1) || (currentRole === 'hr' || currentRole === 'supervisor') || (availableApprovers && availableApprovers.some(a => a.username === currentUser && a.can_approve == 1));
+
+        let btnSwitchHr = document.getElementById('btnSwitchToHrMode');
+        if (btnSwitchHr) {
+            if (currentRole === 'hr' || currentRole === 'supervisor' || isApproverOrAdmin) {
+                btnSwitchHr.classList.remove('hidden');
+            }
+        }
+
         let btnApp = document.getElementById('btnEmpTabApprovals');
         if (btnApp) {
-            if (isApprover) {
+            if (isApproverOrAdmin) {
                 btnApp.classList.remove('hidden');
                 loadRequests();
             } else {
