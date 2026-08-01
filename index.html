@@ -2627,7 +2627,7 @@
         let item = items.find(r => (Array.isArray(r) ? r[0] === reqId : r.id === reqId));
         if (!item) return;
 
-        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl;
+        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover;
 
         if (Array.isArray(item)) {
             status = currentRole === 'hr' ? (sheet === 'TimeRequests' ? item[8] : item[10]) : (sheet === 'TimeRequests' ? item[7] : item[9]);
@@ -2637,6 +2637,7 @@
             targetDetail = sheet === 'TimeRequests' ? item[4] : `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
             reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
             imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
+            targetApprover = sheet === 'TimeRequests' ? (item[10] || 'HR') : (item[12] || 'HR');
         } else {
             status = item.status || item.hr_status;
             empName = item.username;
@@ -2645,6 +2646,7 @@
             targetDetail = item.title || '-';
             reason = item.reason || '-';
             imgUrl = item.file_url;
+            targetApprover = item.target_approver || 'HR';
         }
 
         document.getElementById('reqModalTitle').innerText = sheet === 'TimeRequests' ? '📝 พิจารณาคำขอแก้ไขเวลาทำงาน' : (sheet === 'OtherRequests' ? '💡 พิจารณาคำขออื่นๆ' : '🗓️ พิจารณาคำขอลางาน');
@@ -2654,11 +2656,17 @@
         document.getElementById('reqModalTargetDetail').innerText = targetDetail;
         document.getElementById('reqModalReason').innerText = reason;
 
-        let btnApprove = document.getElementById('btnReqApprove');
-        let btnReject = document.getElementById('btnReqReject');
-        if (btnApprove && btnReject) {
-            btnApprove.onclick = function() { approveReq(sheet, reqId, 'Approved'); };
-            btnReject.onclick = function() { approveReq(sheet, reqId, 'Rejected'); };
+        let targetApproverName = targetApprover === 'HR' ? '🏢 HR / แอดมินกลาง' : targetApprover;
+        if (availableApprovers && availableApprovers.length > 0) {
+            let appObj = availableApprovers.find(a => a.username === targetApprover);
+            if (appObj) targetApproverName = `👤 ${appObj.realname} (${appObj.username})`;
+        }
+
+        let canApproveThis = false;
+        if (targetApprover === 'HR') {
+            if (currentRole === 'hr') canApproveThis = true;
+        } else {
+            if (currentUser === targetApprover) canApproveThis = true;
         }
 
         let badgeEl = document.getElementById('reqModalStatusBadge');
@@ -2689,10 +2697,25 @@
 
         let actionBtns = document.getElementById('reqModalActionButtons');
         if (status === 'Pending') {
-            actionBtns.innerHTML = `
-                <button class="btn-green" onclick="approveReq('${sheet}', '${reqId}', 'Approved')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
-                <button class="btn-red" onclick="approveReq('${sheet}', '${reqId}', 'Rejected')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
-            `;
+            if (canApproveThis) {
+                actionBtns.innerHTML = `
+                    <div style="width:100%; margin-bottom:10px; font-size:12px; color:#0369a1; background:#e0f2fe; padding:8px 12px; border-radius:8px; text-align:center;">
+                        🎯 ท่านคือผู้มีอำนาจพิจารณาอนุมัติคำขอนี้
+                    </div>
+                    <div style="display:flex; gap:10px; width:100%;">
+                        <button class="btn-green" onclick="approveReq('${sheet}', '${reqId}', 'Approved')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
+                        <button class="btn-red" onclick="approveReq('${sheet}', '${reqId}', 'Rejected')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
+                    </div>
+                `;
+            } else {
+                actionBtns.innerHTML = `
+                    <div style="width:100%; margin-bottom:10px; font-size:12px; color:#b91c1c; background:#fee2e2; border:1px solid #fca5a5; padding:10px 12px; border-radius:8px; line-height:1.5;">
+                        🔒 <b>คำขอนี้ระบุส่งถึง "${targetApproverName}" เพื่อพิจารณาอนุมัติเท่านั้น</b><br>
+                        (HR / แอดมิน ดูข้อมูลได้เท่านั้น ไม่สามารถกดอนุมัติแทนผู้มีสิทธิ์ที่ระบุได้)
+                    </div>
+                    <button class="btn-grey" onclick="closeRequestDetailModal()" style="width:100%; padding:10px;">ปิดหน้าต่าง</button>
+                `;
+            }
             actionBtns.classList.remove('hidden');
         } else {
             actionBtns.innerHTML = `<button class="btn-grey" onclick="closeRequestDetailModal()" style="width:100%; padding:10px;">ปิดหน้าต่าง (พิจารณาแล้ว)</button>`;
@@ -2709,12 +2732,20 @@
 
     function approveReq(s, id, st) { 
         if(!confirm(`ยืนยันการให้สถานะ ${st}?`)) return; 
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole}) })
-        .then(() => { 
-            closeRequestDetailModal();
-            loadRequests(); 
-            loadDashboard(); 
-            refreshInitData();
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole, username: currentUser}) })
+        .then(r => r.json())
+        .then(res => { 
+            if (res.status === 'error') {
+                alert(res.message || "ท่านไม่มีสิทธิ์อนุมัติรายการนี้");
+            } else {
+                closeRequestDetailModal();
+                loadRequests(); 
+                loadDashboard(); 
+                refreshInitData();
+            }
+        })
+        .catch(err => {
+            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
         }); 
     }
     
