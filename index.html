@@ -616,6 +616,57 @@
                 </table>
             </div>
         </div>
+
+        <div id="emp-tab-approvals" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--dark);">📑 ศูนย์พิจารณาและอนุมัติคำขอ (ลูกทีมในสังกัด)</h3>
+                <button class="btn-grey" onclick="loadRequests()" style="width: auto; padding: 6px 12px; font-size: 12px; margin: 0;">🔄 รีเฟรชข้อมูล</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div class="card" style="padding: 20px; border-left: 5px solid #f59e0b; cursor: pointer; transition: transform 0.2s;" onclick="openRequestsListModal('time')">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; font-size: 16px; color: var(--dark);">📝 คำขอแก้ไขเวลาทำงาน</h4>
+                            <span style="font-size: 12px; color: var(--gray);">ลืมเช็คอิน / ลืมเช็คเอาท์ / ลืมสแกนเวลา</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 id="cardEmpPendingTimeCount" style="margin: 0; color: #f59e0b; font-size: 26px; font-weight: 800;">0</h3>
+                            <span style="font-size: 11px; color: var(--gray);">รออนุมัติ</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 15px; width: 100%; font-size: 13px; font-weight: 600; background: #6366f1;">🔍 เปิดดูรายการคำขอแก้ไขเวลา</button>
+                </div>
+
+                <div class="card" style="padding: 20px; border-left: 5px solid #3b82f6; cursor: pointer; transition: transform 0.2s;" onclick="openRequestsListModal('leave')">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; font-size: 16px; color: var(--dark);">🗓️ คำขอลาหยุดงาน</h4>
+                            <span style="font-size: 12px; color: var(--gray);">ลากิจ / ลาป่วย / ลาพักร้อน / ลาอื่นๆ</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 id="cardEmpPendingLeaveCount" style="margin: 0; color: #3b82f6; font-size: 26px; font-weight: 800;">0</h3>
+                            <span style="font-size: 11px; color: var(--gray);">รออนุมัติ</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 15px; width: 100%; font-size: 13px; font-weight: 600; background-color: #3b82f6;">🔍 เปิดดูรายการคำขอลางาน</button>
+                </div>
+
+                <div class="card" style="padding: 20px; border-left: 5px solid #0284c7; cursor: pointer; transition: transform 0.2s;" onclick="openRequestsListModal('other')">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; font-size: 16px; color: var(--dark);">💡 คำขออื่นๆ</h4>
+                            <span style="font-size: 12px; color: var(--gray);">เบิกค่าใช้จ่าย / ขอเอกสาร / แจ้งปัญหา / อื่นๆ</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 id="cardEmpPendingOtherCount" style="margin: 0; color: #0284c7; font-size: 26px; font-weight: 800;">0</h3>
+                            <span style="font-size: 11px; color: var(--gray);">รออนุมัติ</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 15px; width: 100%; font-size: 13px; font-weight: 600; background-color: #0284c7;">🔍 เปิดดูรายการคำขออื่นๆ</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="box hidden" id="hrSec">
@@ -1348,7 +1399,7 @@
     }
 
     function openApprovalCenterForUser() {
-        openRequestsListModal('time');
+        switchEmpTab('approvals');
     }
 
     // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน (พื้นหลัง)
@@ -1516,11 +1567,13 @@
         document.getElementById('emp-tab-history').classList.add('hidden'); 
         document.getElementById('emp-tab-request').classList.add('hidden');
         document.getElementById('emp-tab-holidays').classList.add('hidden');
+        if (document.getElementById('emp-tab-approvals')) document.getElementById('emp-tab-approvals').classList.add('hidden');
         
         document.getElementById('btnEmpTabCheckin').classList.remove('active'); 
         document.getElementById('btnEmpTabHistory').classList.remove('active'); 
         document.getElementById('btnEmpTabRequest').classList.remove('active');
         document.getElementById('btnEmpTabHolidays').classList.remove('active');
+        if (document.getElementById('btnEmpTabApprovals')) document.getElementById('btnEmpTabApprovals').classList.remove('active');
         
         if(tab === 'checkin') { 
             document.getElementById('emp-tab-checkin').classList.remove('hidden'); 
@@ -1542,6 +1595,11 @@
             document.getElementById('emp-tab-holidays').classList.remove('hidden'); 
             document.getElementById('btnEmpTabHolidays').classList.add('active'); 
             loadEmpHolidays(); 
+        }
+        else if(tab === 'approvals') { 
+            if (document.getElementById('emp-tab-approvals')) document.getElementById('emp-tab-approvals').classList.remove('hidden'); 
+            if (document.getElementById('btnEmpTabApprovals')) document.getElementById('btnEmpTabApprovals').classList.add('active'); 
+            loadRequests(); 
         }
     }
 
@@ -2360,18 +2418,22 @@
     let currentReqFilter = 'time';
 
     function loadRequests(autoOpenModal = false) {
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_requests'}) }).then(r=>r.json()).then(d => {
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_requests', role: currentRole, username: currentUser}) }).then(r=>r.json()).then(d => {
             hrRawRequests.time = d.time || [];
             hrRawRequests.leave = d.leave || [];
             hrRawRequests.other = d.other || [];
 
-            let pendingTimeCount = hrRawRequests.time.filter(i => (currentRole === 'hr' ? i[8] : i[7]) === 'Pending').length;
-            let pendingLeaveCount = hrRawRequests.leave.filter(i => (currentRole === 'hr' ? i[10] : i[9]) === 'Pending').length;
-            let pendingOtherCount = hrRawRequests.other.filter(i => (currentRole === 'hr' ? i.hr_status : i.emp_status) === 'Pending').length;
+            let pendingTimeCount = hrRawRequests.time.filter(i => (i[8] === 'Pending' || i[7] === 'Pending')).length;
+            let pendingLeaveCount = hrRawRequests.leave.filter(i => (i[10] === 'Pending' || i[9] === 'Pending')).length;
+            let pendingOtherCount = hrRawRequests.other.filter(i => (i.hr_status === 'Pending' || i.emp_status === 'Pending')).length;
 
             if (document.getElementById('cardPendingTimeCount')) document.getElementById('cardPendingTimeCount').innerText = pendingTimeCount;
             if (document.getElementById('cardPendingLeaveCount')) document.getElementById('cardPendingLeaveCount').innerText = pendingLeaveCount;
             if (document.getElementById('cardPendingOtherCount')) document.getElementById('cardPendingOtherCount').innerText = pendingOtherCount;
+
+            if (document.getElementById('cardEmpPendingTimeCount')) document.getElementById('cardEmpPendingTimeCount').innerText = pendingTimeCount;
+            if (document.getElementById('cardEmpPendingLeaveCount')) document.getElementById('cardEmpPendingLeaveCount').innerText = pendingLeaveCount;
+            if (document.getElementById('cardEmpPendingOtherCount')) document.getElementById('cardEmpPendingOtherCount').innerText = pendingOtherCount;
 
             let mTimeEl = document.getElementById('modalTimeCount');
             let mLeaveEl = document.getElementById('modalLeaveCount');
