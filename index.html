@@ -426,6 +426,7 @@
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockEmp" class="header-clock" style="margin-right: 4px;">00:00:00</div>
+                <button id="btnSwitchToHrMode" class="btn-primary hidden" onclick="switchToHrView()" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #4361ee, #3b82f6); border: none; box-shadow: 0 2px 4px rgba(67,97,238,0.3);">📊 หน้าผู้ดูแล (HR/Supervisor)</button>
                 <button class="btn-outline" onclick="openEmpNotifModal()" style="padding: 6px 12px; font-size: 13px; position: relative; display: inline-flex; align-items: center; gap: 4px; border-color: #6366f1; color: #4338ca; background: #eef2ff;">
                     🔔 แจ้งเตือน <span id="empNotifBadge" class="hidden" style="background:#ef4444; color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:2px; line-height:1.2; box-shadow:0 2px 4px rgba(239,68,68,0.4);">0</span>
                 </button>
@@ -677,6 +678,7 @@
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockAdmin" class="header-clock" style="margin-right: 4px;">00:00:00</div>
+                <button class="btn-primary" onclick="switchToEmpView()" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #10b981, #059669); border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">📷 หน้าลงเวลาส่วนตัว (เช็คอิน)</button>
                 <button class="btn-outline" onclick="openHrNotifModal()" style="padding: 6px 12px; font-size: 13px; position: relative; display: inline-flex; align-items: center; gap: 4px; border-color: #0284c7; color: #0369a1; background: #e0f2fe;">
                     📥 กล่องคำขอ <span id="hrNotifBadge" class="hidden" style="background:#ef4444; color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:2px; line-height:1.2; box-shadow:0 2px 4px rgba(239,68,68,0.4);">0</span>
                 </button>
