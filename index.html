@@ -1101,6 +1101,41 @@
     </div>
 </div>
 
+<!-- ================= MODAL: NOTIFICATION DETAIL POPUP ================= -->
+<div id="notifDetailModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 15px;">
+    <div style="background: white; border-radius: 16px; width: 95%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span id="notifDetailIcon" style="font-size:24px;">🔔</span>
+                <div>
+                    <h3 id="notifDetailTitle" style="margin: 0; color: var(--dark); font-size: 15px; font-weight: 700; line-height: 1.3;">
+                        รายละเอียดการแจ้งเตือน
+                    </h3>
+                    <span id="notifDetailDate" style="font-size: 11px; color: var(--gray);">⏰ -</span>
+                </div>
+            </div>
+            <button onclick="closeNotifDetailModal()" style="background: none; border: none; font-size: 22px; color: #94a3b8; cursor: pointer; padding: 0 4px;">✕</button>
+        </div>
+
+        <div style="overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 12px;">
+            <div id="notifDetailBadgeContainer" style="margin-bottom: 4px;">
+                <span id="notifDetailStatusBadge" class="status-Pending" style="font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 700;">-</span>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-line;" id="notifDetailContent">
+                กำลังโหลดรายละเอียด...
+            </div>
+
+            <div id="notifDetailImageContainer" class="hidden" style="text-align: center; margin-top: 6px;">
+                <label style="font-size: 12px; color: var(--gray); font-weight: 600; display: block; margin-bottom: 6px;">🖼️ รูปภาพ / เอกสารแนบ:</label>
+                <img id="notifDetailImgPreview" src="" alt="เอกสารแนบ" style="max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="closeNotifDetailModal()" style="margin-top: 15px; width: 100%; padding: 10px; font-size: 13px; font-weight: 600;">ตกลง (ปิดหน้าต่าง)</button>
+    </div>
+</div>
+
 <!-- ================= MODAL: REQUESTS APPROVAL LIST ================= -->
 <div id="requestsListModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 10px;">
     <div style="background: white; border-radius: 16px; width: 95%; max-width: 760px; max-height: 90vh; display: flex; flex-direction: column; padding: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative;">
@@ -3911,20 +3946,65 @@
             let cardBorder = isRead ? '#e2e8f0' : '#bae6fd';
 
             html += `
-                <div style="background:${cardBg}; border:1px solid ${cardBorder}; border-radius:10px; padding:12px; cursor:pointer; transition:all 0.2s;" onclick="markEmpNotifItemRead('${item.id}')">
+                <div style="background:${cardBg}; border:1px solid ${cardBorder}; border-radius:10px; padding:12px; cursor:pointer; transition:all 0.2s;" onclick="openNotifDetailModal('${item.id}')">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
                         <span style="font-weight:700; font-size:13px; color:var(--dark); display:flex; align-items:center; gap:6px;">
                             <span>${item.icon}</span> ${item.title}
                         </span>
                         <span style="background:${tagBg}; color:${tagColor}; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px;">${tagText}</span>
                     </div>
-                    <div style="font-size:12px; color:#475569; margin-bottom:4px; line-height:1.4;">${item.content}</div>
-                    <div style="font-size:11px; color:var(--gray); text-align:right;">⏰ ${item.date}</div>
+                    <div style="font-size:12px; color:#475569; margin-bottom:6px; line-height:1.4;">${item.content}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; color:var(--gray);">⏰ ${item.date}</span>
+                        <span style="color:var(--primary); font-size:11px; font-weight:600;">🔍 ดูรายละเอียด ▶</span>
+                    </div>
                 </div>
             `;
         });
 
         container.innerHTML = html;
+    }
+
+    function openNotifDetailModal(id) {
+        markEmpNotifItemRead(id);
+
+        let item = empNotificationsList.find(i => i.id === id);
+        if (!item) return;
+
+        document.getElementById('notifDetailIcon').innerText = item.icon || '🔔';
+        document.getElementById('notifDetailTitle').innerText = item.title || 'รายละเอียดการแจ้งเตือน';
+        document.getElementById('notifDetailDate').innerText = '⏰ ' + (item.date || '-');
+        document.getElementById('notifDetailContent').innerText = item.content || '';
+
+        let badge = document.getElementById('notifDetailStatusBadge');
+        if (badge) {
+            let st = item.status || '';
+            let stTxt = st === 'Approved' ? 'อนุมัติเรียบร้อย' : (st === 'Rejected' ? 'ไม่อนุมัติ' : (st === 'Announcement' ? '📢 ประกาศบริษัท' : (st === 'System' ? '🚀 ประกาศระบบ' : '⏳ รอพิจารณา')));
+            let bg = st === 'Approved' ? '#dcfce7' : (st === 'Rejected' ? '#fee2e2' : (st === 'Announcement' ? '#e0f2fe' : (st === 'System' ? '#f3e8ff' : '#fef3c7')));
+            let col = st === 'Approved' ? '#166534' : (st === 'Rejected' ? '#991b1b' : (st === 'Announcement' ? '#0369a1' : (st === 'System' ? '#6b21a8' : '#b45309')));
+            badge.style.background = bg;
+            badge.style.color = col;
+            badge.innerText = stTxt;
+        }
+
+        let imgContainer = document.getElementById('notifDetailImageContainer');
+        let imgPreview = document.getElementById('notifDetailImgPreview');
+        if (item.image_url && isValidImageUrl(item.image_url)) {
+            imgPreview.src = getFullImageUrl(item.image_url);
+            imgPreview.onclick = function() { openImageModal(item.image_url); };
+            imgContainer.classList.remove('hidden');
+        } else {
+            imgPreview.src = '';
+            imgContainer.classList.add('hidden');
+        }
+
+        let modal = document.getElementById('notifDetailModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeNotifDetailModal() {
+        let modal = document.getElementById('notifDetailModal');
+        if (modal) modal.classList.add('hidden');
     }
 
     function markEmpNotifItemRead(id) {
