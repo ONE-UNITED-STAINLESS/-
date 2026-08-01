@@ -1420,22 +1420,35 @@
             localStorage.setItem('work_checkin_role', currentRole);
         }
 
-        let isApproverOrAdmin = (d.user_can_approve == 1) || (currentRole === 'hr' || currentRole === 'supervisor') || (availableApprovers && availableApprovers.some(a => a.username === currentUser && a.can_approve == 1));
+        let isHrOrSup = (currentRole === 'hr' || currentRole === 'supervisor');
+        let isApprover = (d.user_can_approve == 1) || (availableApprovers && availableApprovers.some(a => a.username === currentUser && a.can_approve == 1));
 
         let btnSwitchHr = document.getElementById('btnSwitchToHrMode');
         if (btnSwitchHr) {
-            if (currentRole === 'hr' || currentRole === 'supervisor' || isApproverOrAdmin) {
+            if (isHrOrSup) {
                 btnSwitchHr.classList.remove('hidden');
+            } else {
+                btnSwitchHr.classList.add('hidden');
             }
         }
 
         let btnApp = document.getElementById('btnEmpTabApprovals');
         if (btnApp) {
-            if (isApproverOrAdmin) {
+            if (isHrOrSup || isApprover) {
                 btnApp.classList.remove('hidden');
                 loadRequests();
             } else {
                 btnApp.classList.add('hidden');
+            }
+        }
+
+        if (!isHrOrSup) {
+            let hrSec = document.getElementById('hrSec');
+            let empSec = document.getElementById('empSec');
+            if (hrSec) hrSec.classList.add('hidden');
+            if (empSec) {
+                empSec.classList.remove('hidden');
+                document.getElementById('empName').innerText = currentRealName || currentUser;
             }
         }
 
