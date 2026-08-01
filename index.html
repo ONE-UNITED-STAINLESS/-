@@ -3096,6 +3096,7 @@
     // =========================================================
     let allAnnouncements = [];
     let currentActivePopupAncId = null;
+    let closedSessionAncIds = new Set();
 
     function renderEmpAnnouncements(list) {
         if (!list || list.length === 0) return;
@@ -3119,11 +3120,13 @@
             box.classList.remove('hidden');
         }
 
-        // ================= 24-HOUR AUTO POPUP LOGIC =================
+        // ================= 24-HOUR & SESSION AUTO POPUP LOGIC =================
+        if (closedSessionAncIds.has(latest.id)) return;
+
         let hideUntil = localStorage.getItem('hide_anc_' + latest.id);
-        if (!hideUntil || Date.now() > parseInt(hideUntil)) {
-            showAnnouncementPopup(latest);
-        }
+        if (hideUntil && Date.now() <= parseInt(hideUntil, 10)) return;
+
+        showAnnouncementPopup(latest);
     }
 
     function showAnnouncementPopup(anc) {
@@ -3204,6 +3207,10 @@
     function closeAnnouncementPopup() {
         let modal = document.getElementById('announcementPopupModal');
         if (modal) modal.classList.add('hidden');
+
+        if (currentActivePopupAncId) {
+            closedSessionAncIds.add(currentActivePopupAncId);
+        }
 
         let chk = document.getElementById('chkHideAnc1Day');
         if (chk && chk.checked && currentActivePopupAncId) {
@@ -3757,8 +3764,8 @@
         });
     }
 
-    // ⚡ Ultra-fast real-time silent background sync every 1 second (1000ms)
-    setInterval(refreshInitData, 1000);
+    // ⚡ Real-time silent background sync every 10 seconds
+    setInterval(refreshInitData, 10000);
 
     function processEmpNotifications(myReqs, announcements) {
         let list = [];
