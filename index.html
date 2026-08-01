@@ -1363,6 +1363,9 @@
             el.innerHTML = '<option value="HR">🏢 HR / แอดมินกลาง (แผนกทรัพยากรบุคคล)</option>';
             if (availableApprovers && availableApprovers.length > 0) {
                 availableApprovers.forEach(a => {
+                    let uName = (a.username || '').toUpperCase();
+                    let rName = (a.realname || '').toUpperCase();
+                    if (uName === 'HR' || rName === 'HR') return;
                     let isSup = (mySupervisor && a.username === mySupervisor) ? ' ⭐ (หัวหน้าสายตรง)' : '';
                     el.innerHTML += `<option value="${a.username}">👤 ${a.realname} (${a.username})${isSup}</option>`;
                 });
@@ -1384,6 +1387,9 @@
             el.innerHTML = '<option value="">-- ไม่ระบุ (สังกัด HR โดยตรง) --</option>';
             if (availableApprovers && availableApprovers.length > 0) {
                 availableApprovers.forEach(a => {
+                    let uName = (a.username || '').toUpperCase();
+                    let rName = (a.realname || '').toUpperCase();
+                    if (uName === 'HR' || rName === 'HR') return;
                     el.innerHTML += `<option value="${a.username}">👤 ${a.realname} (${a.username})</option>`;
                 });
             }
