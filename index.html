@@ -422,7 +422,7 @@
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
-                <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.1 ✨ อัปเดต</span></h2>
+                <h2>สวัสดีคุณ <span id="empName" class="text-primary"></span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.7.0 ✨ อัปเดต</span></h2>
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockEmp" class="header-clock" style="margin-right: 4px;">00:00:00</div>
@@ -674,7 +674,7 @@
         <div class="app-header">
             <div>
                 <h4 style="margin:0 0 5px 0; color:var(--gray); font-size:12px;">ONE UNITED STAINLESS CO., LTD</h4>
-                <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.6.1 ✨ อัปเดต</span></h2>
+                <h2>📊 <span id="roleTitle" class="text-primary">Dashboard</span> <span onclick="openVersionModal()" style="cursor:pointer; background:linear-gradient(135deg,#4361ee,#3b82f6); color:white; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; margin-left:6px; display:inline-block; box-shadow:0 2px 4px rgba(67,97,238,0.3);" title="คลิกเพื่อดูประวัติการอัปเดตระบบ">v2.7.0 ✨ อัปเดต</span></h2>
             </div>
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockAdmin" class="header-clock" style="margin-right: 4px;">00:00:00</div>
@@ -1133,6 +1133,57 @@
         </div>
 
         <button class="btn-primary" onclick="closeNotifDetailModal()" style="margin-top: 15px; width: 100%; padding: 10px; font-size: 13px; font-weight: 600;">ตกลง (ปิดหน้าต่าง)</button>
+    </div>
+</div>
+
+<!-- ================= MODAL: SYSTEM VERSION CHANGELOG ================= -->
+<div id="versionModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10001; display: flex; justify-content: center; align-items: center; padding: 15px;">
+    <div style="background: white; border-radius: 16px; width: 95%; max-width: 540px; max-height: 90vh; display: flex; flex-direction: column; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 14px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:24px;">🚀</span>
+                <div>
+                    <h3 style="margin: 0; color: var(--dark); font-size: 16px; font-weight: 700;">
+                        ประวัติการอัปเดตระบบ (Changelog)
+                    </h3>
+                    <span style="font-size: 11px; color: var(--primary); font-weight: 700;">เวอร์ชันปัจจุบัน: v2.7.0 (อัปเดตล่าสุด)</span>
+                </div>
+            </div>
+            <button onclick="closeVersionModal()" style="background: none; border: none; font-size: 22px; color: #94a3b8; cursor: pointer; padding: 0 4px;">✕</button>
+        </div>
+
+        <div style="overflow-y: auto; flex: 1; padding-right: 6px; display: flex; flex-direction: column; gap: 14px;">
+            <!-- Version 2.7.0 -->
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                    <span style="background: linear-gradient(135deg,#2563eb,#3b82f6); color: white; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 12px;">✨ v2.7.0 (ล่าสุด)</span>
+                    <span style="font-size: 11px; color: #1e40af; font-weight: 600;">📅 01 สิงหาคม 2026</span>
+                </div>
+                <div style="font-size: 12.5px; color: #1e3a8a; line-height: 1.6;">
+                    <b>รายละเอียดการปรับปรุงฟีเจอร์:</b>
+                    <ul style="margin: 6px 0 0 0; padding-left: 18px;">
+                        <li><b>🔔 กล่องแจ้งเตือนและป๊อบอัพรายละเอียดใหม่</b>: สามารถกดที่รายการแจ้งเตือนในกระดิ่งเพื่อเปิดดูรายละเอียด, ป้ายสถานะ และรูปภาพแนบคมชัดสูงในรูปแบบป๊อบอัพได้ทันที</li>
+                        <li><b>⏰ การเรียลไทม์จัดเรียงเวลาล่าสุด</b>: ปรับการเรียงลำดับในกล่องแจ้งเตือนให้รายการใหม่ล่าสุดขึ้นอยู่บนสุดเสมอ</li>
+                        <li><b>🔒 ระบบล็อกสิทธิ์อนุมัติเฉพาะผู้มีอำนาจ (Target Approver)</b>: HR และแอดมินดูคำขอพนักงานได้ทุกคน แต่ <b>กดอนุมัติแทนหัวหน้างานที่ระบุส่งถึงไม่ได้</b> (เฉพาะผู้มีสิทธิ์เป้าหมายเท่านั้นที่อนุมัติได้)</li>
+                        <li><b>📢 ปรับปรุงระบบประกาศบริษัท</b>: ปรับระบบปิด 1 วันและการปิดหน้าต่างประกาศให้ทำงานเงียบ ไม่เด้งรบกวนระหว่างใช้งาน</li>
+                        <li><b>👤 ปรับปรุงระบบสิทธิ์และการลดตำแหน่ง</b>: เมื่อปลดสิทธิ์ HR สลับกลับเป็นพนักงานจะซ่อนหน้าผู้ดูแลทันที และกรองรายชื่อ HR ออกจากดรอปดาวน์เลือกผู้อนุมัติส่วนตัว</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Version 2.6.1 -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                    <span style="background: #e2e8f0; color: #475569; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 10px;">v2.6.1</span>
+                    <span style="font-size: 11px; color: var(--gray);">30 กรกฎาคม 2026</span>
+                </div>
+                <div style="font-size: 12px; color: #475569; line-height: 1.5;">
+                    ระบบซิงค์แจ้งเตือนเรียลไทม์ และระบบกล่องข้อความแจ้งเตือนผลการอนุมัติสำหรับพนักงานและฝ่าย HR
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="closeVersionModal()" style="margin-top: 15px; width: 100%; padding: 10px; font-size: 13px; font-weight: 600;">ตกลง (ปิดหน้าต่าง)</button>
     </div>
 </div>
 
@@ -3825,11 +3876,7 @@
    - มีเพียงผู้ที่มีชื่อเป็นผู้อนุมัติเป้าหมายเท่านั้นที่สามารถกดอนุมัติ/ปฏิเสธได้
 
 3. 📢 **ปรับปรุงระบบประกาศบริษัท (Announcements System)**:
-   - ปรับระบบปิดประกาศ 1 วัน (24 ชั่วโมง) และการปิดป๊อบอัพประกาศให้ทำงานเงียบ ไม่เด้งรบกวนระหว่างใช้งาน
-
-4. 👤 **ปรับปรุงระบบสิทธิ์และรายชื่อผู้ดูแล**:
-   - ปรับปรุงการลดสิทธิ์จาก HR กลับเป็นพนักงาน ให้ซ่อนหน้าจัดการผู้ดูแลทันที
-   - กรองรายชื่อ HR ออกจากดรอปดาวน์เลือกผู้อนุมัติส่วนตัว เพื่อให้คงเหลือเฉพาะ "🏢 HR / แอดมินกลาง"`,
+   - ปรับระบบปิดประกาศ 1 วัน (24 ชั่วโมง) และการปิดป๊อบอัพประกาศให้ทำงานเงียบ ไม่เด้งรบกวนระหว่างใช้งาน`,
             date: '01/08/2026',
             status: 'System'
         });
@@ -4071,6 +4118,16 @@
 
     function closeNotifDetailModal() {
         let modal = document.getElementById('notifDetailModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function openVersionModal() {
+        let modal = document.getElementById('versionModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeVersionModal() {
+        let modal = document.getElementById('versionModal');
         if (modal) modal.classList.add('hidden');
     }
 
