@@ -3849,7 +3849,7 @@
             });
         }
 
-        list.sort((a, b) => new Date(b.date) - new Date(a.date));
+        list.sort((a, b) => parseThaiDateTime(b.date) - parseThaiDateTime(a.date));
         empNotificationsList = list;
 
         let unreadCount = list.filter(item => !readIds.includes(item.id)).length;
@@ -4049,7 +4049,7 @@
         combined.sort((a, b) => {
             if (a.status === 'Pending' && b.status !== 'Pending') return -1;
             if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-            return new Date(b.date) - new Date(a.date);
+            return parseThaiDateTime(b.date) - parseThaiDateTime(a.date);
         });
 
         let html = '';
