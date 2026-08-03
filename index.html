@@ -1309,19 +1309,6 @@
         if (!isValidImageUrl(url)) return '';
         let u = url.trim();
 
-        let baseUrl = scriptURL.replace(/\/api\/?$/, '');
-        if (baseUrl.includes('ngrok-free.dev') || baseUrl.includes('ngrok.io')) {
-            baseUrl = baseUrl.replace(/^http:\/\//i, 'https://');
-        } else if (window.location.protocol === 'https:' && baseUrl.startsWith('http://')) {
-            baseUrl = baseUrl.replace(/^http:\/\//i, 'https://');
-        }
-
-        // If URL contains /uploads/, strip localhost / old domain and attach to active baseUrl
-        if (u.includes('/uploads/')) {
-            const relPath = u.substring(u.indexOf('/uploads/'));
-            return baseUrl + relPath;
-        }
-
         if (u.startsWith('http://') || u.startsWith('https://')) {
             if (u.includes('ngrok-free.dev') || u.includes('ngrok.io')) {
                 u = u.replace(/^http:\/\//i, 'https://');
@@ -1329,8 +1316,18 @@
             return u;
         }
 
-        if (u.startsWith('/')) return baseUrl + u;
-        return baseUrl + '/' + u;
+        let uploadHost = 'https://kpshop.kppremium.shop/checkin-uploads';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            uploadHost = window.location.origin + '/uploads';
+        }
+
+        if (u.includes('/uploads/')) {
+            const relPath = u.substring(u.indexOf('/uploads/')).replace(/^\/uploads\//, '');
+            return uploadHost + '/' + relPath;
+        }
+
+        if (u.startsWith('/')) return uploadHost + u;
+        return uploadHost + '/' + u;
     }
 
     function getDriveFileId(url) {
