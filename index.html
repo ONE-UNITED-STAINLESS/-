@@ -1309,21 +1309,19 @@
         if (!isValidImageUrl(url)) return '';
         let u = url.trim();
 
-        if (u.startsWith('http://') || u.startsWith('https://')) {
-            if (u.includes('ngrok-free.dev') || u.includes('ngrok.io')) {
-                u = u.replace(/^http:\/\//i, 'https://');
-            }
-            return u;
-        }
-
         let uploadHost = 'https://kpshop.kppremium.shop/checkin-uploads';
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             uploadHost = window.location.origin + '/uploads';
         }
 
+        // If URL contains /uploads/, strip any old domain (ngrok/localhost/IP) and route via HTTPS checkin-uploads
         if (u.includes('/uploads/')) {
             const relPath = u.substring(u.indexOf('/uploads/')).replace(/^\/uploads\//, '');
             return uploadHost + '/' + relPath;
+        }
+
+        if (u.startsWith('http://') || u.startsWith('https://')) {
+            return u;
         }
 
         if (u.startsWith('/')) return uploadHost + u;
