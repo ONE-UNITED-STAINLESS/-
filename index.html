@@ -1246,14 +1246,11 @@
 </div>
 
 <script>
-    // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local & Public Ngrok Tunnel) *********
-    const localURL = (window.location.origin && window.location.origin.startsWith('http') && !window.location.hostname.includes('github.io'))
-        ? (window.location.origin + '/api')
-        : 'http://147.50.253.134:3000/api';
+    // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local & Public VPS Server) *********
     const publicVPSApiURL = 'https://147.50.253.134/checkin-api';
-    const scriptURL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (window.location.origin && window.location.port === '3000'))
-        ? localURL
-        : publicVPSApiURL;
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (window.location.origin && window.location.port === '3000');
+    const isGitHubPages = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+    const scriptURL = (isGitHubPages || !isLocalHost) ? publicVPSApiURL : (window.location.origin + '/api');
 
     // Fetch Interceptor for Ngrok & Localtunnel Bypass
     const originalFetch = window.fetch;
