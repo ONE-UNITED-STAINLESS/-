@@ -3547,21 +3547,35 @@
                 <meta charset="UTF-8">
                 <!--[if gte mso 9]>
                 <xml>
-                    <x:ExcelWorksheets>
-                        <x:ExcelWorksheet><x:Name>ประวัติการลงเวลาและOT</x:Name><x:WorksheetSource HRef="#sheet1"/></x:ExcelWorksheet>
-                        <x:ExcelWorksheet><x:Name>คำขอแก้ไขเวลาทำงาน</x:Name><x:WorksheetSource HRef="#sheet2"/></x:ExcelWorksheet>
-                        <x:ExcelWorksheet><x:Name>คำขอลาหยุดงาน</x:Name><x:WorksheetSource HRef="#sheet3"/></x:ExcelWorksheet>
-                        <x:ExcelWorksheet><x:Name>สรุปสถิติพนักงาน</x:Name><x:WorksheetSource HRef="#sheet4"/></x:ExcelWorksheet>
-                    </x:ExcelWorksheets>
+                 <x:ExcelWorkbook>
+                  <x:ExcelWorksheets>
+                   <x:ExcelWorksheet>
+                    <x:Name>ประวัติการลงเวลาและOT</x:Name>
+                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                   </x:ExcelWorksheet>
+                   <x:ExcelWorksheet>
+                    <x:Name>คำขอแก้ไขเวลาทำงาน</x:Name>
+                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                   </x:ExcelWorksheet>
+                   <x:ExcelWorksheet>
+                    <x:Name>คำขอลาหยุดงาน</x:Name>
+                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                   </x:ExcelWorksheet>
+                   <x:ExcelWorksheet>
+                    <x:Name>สรุปสถิติพนักงาน</x:Name>
+                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                   </x:ExcelWorksheet>
+                  </x:ExcelWorksheets>
+                 </x:ExcelWorkbook>
                 </xml>
                 <![endif]-->
                 <style>
                     body { font-family: 'Prompt', 'Sarabun', Tahoma, sans-serif; font-size: 13px; }
-                    .main-header { font-size: 16px; font-weight: bold; color: #1e3a8a; background-color: #dbeafe; padding: 10px; border: 1px solid #93c5fd; text-align: center; margin-bottom: 10px; }
-                    .section-header { font-size: 14px; font-weight: bold; color: #ffffff; background-color: #2563eb; padding: 8px; margin-top: 25px; margin-bottom: 10px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-                    th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
-                    td { border: 1px solid #e2e8f0; padding: 7px 10px; font-size: 12px; }
+                    .title-cell { font-size: 15px; font-weight: bold; color: #1e3a8a; background-color: #dbeafe; text-align: center; vertical-align: middle; height: 45px; border: 1px solid #93c5fd; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: center; vertical-align: middle; }
+                    td { border: 1px solid #e2e8f0; padding: 7px 10px; font-size: 12px; vertical-align: middle; }
+                    .text-center { text-align: center; }
                     .status-approved { color: #166534; background-color: #dcfce7; font-weight: bold; text-align: center; }
                     .status-pending { color: #9a3412; background-color: #ffedd5; font-weight: bold; text-align: center; }
                     .status-rejected { color: #991b1b; background-color: #fee2e2; font-weight: bold; text-align: center; }
@@ -3569,23 +3583,24 @@
             </head>
             <body>
                 <!-- SHEET 1: ประวัติการลงเวลาและ OT -->
-                <div id="sheet1">
-                    <div class="main-header">📊 รายงานประวัติการลงเวลาเข้า-ออกงาน และ OT (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ลำดับ</th>
-                                <th>วันที่-เวลา</th>
-                                <th>ชื่อ-นามสกุลพนักงาน</th>
-                                <th>สถานะการลงเวลา</th>
-                                <th>สถานที่ลงเวลา</th>
-                                <th>ละติจูด (Lat)</th>
-                                <th>ลองจิจูด (Lng)</th>
-                                <th>ระยะห่าง (เมตร)</th>
-                                <th>รูปถ่ายสแกนใบหน้า</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                <table>
+                    <thead>
+                        <tr>
+                            <td colspan="9" class="title-cell">📊 รายงานประวัติการลงเวลาเข้า-ออกงาน และ OT (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 50px;">ลำดับ</th>
+                            <th style="width: 150px;">วันที่-เวลา</th>
+                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
+                            <th style="width: 130px;">สถานะการลงเวลา</th>
+                            <th style="width: 220px;">สถานที่ลงเวลา</th>
+                            <th style="width: 120px;">ละติจูด (Lat)</th>
+                            <th style="width: 120px;">ลองจิจูด (Lng)</th>
+                            <th style="width: 110px;">ระยะห่าง (เมตร)</th>
+                            <th style="width: 140px;">รูปถ่ายสแกนใบหน้า</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
             if (attendanceLogs.length === 0) {
                 excelContent += `<tr><td colspan="9" style="text-align:center; color:#64748b;">ไม่มีข้อมูลประวัติการลงเวลาในช่วงเดือนที่เลือก</td></tr>`;
@@ -3603,15 +3618,15 @@
 
                     excelContent += `
                         <tr>
-                            <td>${idx + 1}</td>
-                            <td>${dt}</td>
+                            <td class="text-center">${idx + 1}</td>
+                            <td class="text-center">${dt}</td>
                             <td><b>${empName}</b></td>
-                            <td><b>${status}</b></td>
+                            <td class="text-center"><b>${status}</b></td>
                             <td>${loc}</td>
-                            <td>${lat}</td>
-                            <td>${lng}</td>
-                            <td>${dist}</td>
-                            <td>${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูรูปถ่าย</a>` : '-'}</td>
+                            <td class="text-center">${lat}</td>
+                            <td class="text-center">${lng}</td>
+                            <td class="text-center">${dist}</td>
+                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูรูปถ่าย</a>` : '-'}</td>
                         </tr>`;
                 });
             }
@@ -3619,25 +3634,27 @@
             excelContent += `
                         </tbody>
                     </table>
-                </div>
+
+                <br style="page-break-before:always; mso-break-type:section-break">
 
                 <!-- SHEET 2: คำขอแก้ไขเวลาทำงาน -->
-                <div id="sheet2">
-                    <div class="section-header">⏰ รายงานประวัติการยื่นคำขอแก้ไขเวลาทำงาน (${headerTitleLabel})</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>รหัสคำขอ</th>
-                                <th>วันที่ยื่นคำขอ</th>
-                                <th>ชื่อ-นามสกุลพนักงาน</th>
-                                <th>ประเภทคำขอ</th>
-                                <th>วันที่/เวลา ที่ขอปรับปรุง</th>
-                                <th>เหตุผลของพนักงาน</th>
-                                <th>สถานะการอนุมัติ HR</th>
-                                <th>เอกสารหลักฐานแนบ</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                <table>
+                    <thead>
+                        <tr>
+                            <td colspan="8" class="title-cell">⏰ รายงานประวัติการยื่นคำขอแก้ไขเวลาทำงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 130px;">รหัสคำขอ</th>
+                            <th style="width: 150px;">วันที่ยื่นคำขอ</th>
+                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
+                            <th style="width: 140px;">ประเภทคำขอ</th>
+                            <th style="width: 160px;">วันที่/เวลา ที่ขอปรับปรุง</th>
+                            <th style="width: 220px;">เหตุผลของพนักงาน</th>
+                            <th style="width: 130px;">สถานะการอนุมัติ HR</th>
+                            <th style="width: 140px;">เอกสารหลักฐานแนบ</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
             if (timeReqs.length === 0) {
                 excelContent += `<tr><td colspan="8" style="text-align:center; color:#64748b;">ไม่มีรายการคำขอแก้ไขเวลาทำงานในช่วงเดือนที่เลือก</td></tr>`;
@@ -3659,13 +3676,13 @@
                     excelContent += `
                         <tr>
                             <td>${reqId}</td>
-                            <td>${reqDate}</td>
+                            <td class="text-center">${reqDate}</td>
                             <td><b>${empName}</b></td>
                             <td>${reqType}</td>
-                            <td>${targetDetail}</td>
+                            <td class="text-center">${targetDetail}</td>
                             <td>${reason}</td>
                             <td class="${statusClass}">${statusTxt}</td>
-                            <td>${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารหลักฐาน</a>` : '-'}</td>
+                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารหลักฐาน</a>` : '-'}</td>
                         </tr>`;
                 });
             }
@@ -3673,27 +3690,29 @@
             excelContent += `
                         </tbody>
                     </table>
-                </div>
+
+                <br style="page-break-before:always; mso-break-type:section-break">
 
                 <!-- SHEET 3: คำขอลาหยุดงาน -->
-                <div id="sheet3">
-                    <div class="section-header">🗓️ รายงานประวัติการยื่นคำขอลาหยุดงาน (${headerTitleLabel})</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>รหัสคำขอ</th>
-                                <th>วันที่ยื่นคำขอ</th>
-                                <th>ชื่อ-นามสกุลพนักงาน</th>
-                                <th>ประเภทการลา</th>
-                                <th>วันที่เริ่มลา</th>
-                                <th>วันที่สิ้นสุดลา</th>
-                                <th>จำนวนวันลา</th>
-                                <th>เหตุผลการขอลา</th>
-                                <th>สถานะการอนุมัติ HR</th>
-                                <th>ใบรับรองแพทย์/เอกสารแนบ</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                <table>
+                    <thead>
+                        <tr>
+                            <td colspan="10" class="title-cell">🗓️ รายงานประวัติการยื่นคำขอลาหยุดงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 130px;">รหัสคำขอ</th>
+                            <th style="width: 150px;">วันที่ยื่นคำขอ</th>
+                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
+                            <th style="width: 130px;">ประเภทการลา</th>
+                            <th style="width: 110px;">วันที่เริ่มลา</th>
+                            <th style="width: 110px;">วันที่สิ้นสุดลา</th>
+                            <th style="width: 90px;">จำนวนวันลา</th>
+                            <th style="width: 200px;">เหตุผลการขอลา</th>
+                            <th style="width: 130px;">สถานะการอนุมัติ HR</th>
+                            <th style="width: 140px;">ใบรับรองแพทย์/เอกสารแนบ</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
             if (leaveReqs.length === 0) {
                 excelContent += `<tr><td colspan="10" style="text-align:center; color:#64748b;">ไม่มีรายการคำขอลาหยุดงานในช่วงเดือนที่เลือก</td></tr>`;
@@ -3717,15 +3736,15 @@
                     excelContent += `
                         <tr>
                             <td>${reqId}</td>
-                            <td>${reqDate}</td>
+                            <td class="text-center">${reqDate}</td>
                             <td><b>${empName}</b></td>
                             <td>${leaveType}</td>
-                            <td>${startDate}</td>
-                            <td>${endDate}</td>
-                            <td><b>${daysCount} วัน</b></td>
+                            <td class="text-center">${startDate}</td>
+                            <td class="text-center">${endDate}</td>
+                            <td class="text-center"><b>${daysCount} วัน</b></td>
                             <td>${reason}</td>
                             <td class="${statusClass}">${statusTxt}</td>
-                            <td>${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารแนบ</a>` : '-'}</td>
+                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารแนบ</a>` : '-'}</td>
                         </tr>`;
                 });
             }
@@ -3733,25 +3752,27 @@
             excelContent += `
                         </tbody>
                     </table>
-                </div>
+
+                <br style="page-break-before:always; mso-break-type:section-break">
 
                 <!-- SHEET 4: สรุปสถิติรายบุคคล -->
-                <div id="sheet4">
-                    <div class="section-header">👥 รายงานสรุปสถิติจำนวนวันทำงาน OT และใบลา รายพนักงาน (${headerTitleLabel})</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ลำดับ</th>
-                                <th>ชื่อเข้าใช้งาน (Username)</th>
-                                <th>ชื่อ-นามสกุลจริง</th>
-                                <th>ระดับสิทธิ์</th>
-                                <th>จำนวนวันมาทำงาน</th>
-                                <th>จำนวนครั้งเข้าสาย</th>
-                                <th>จำนวนครั้งทำ OT</th>
-                                <th>จำนวนวันลาหยุด</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                <table>
+                    <thead>
+                        <tr>
+                            <td colspan="8" class="title-cell">👥 รายงานสรุปสถิติจำนวนวันทำงาน OT และใบลา รายพนักงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 50px;">ลำดับ</th>
+                            <th style="width: 150px;">ชื่อเข้าใช้งาน (Username)</th>
+                            <th style="width: 220px;">ชื่อ-นามสกุลจริง</th>
+                            <th style="width: 110px;">ระดับสิทธิ์</th>
+                            <th style="width: 130px;">จำนวนวันมาทำงาน</th>
+                            <th style="width: 130px;">จำนวนครั้งเข้าสาย</th>
+                            <th style="width: 130px;">จำนวนครั้งทำ OT</th>
+                            <th style="width: 130px;">จำนวนวันลาหยุด</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
             if (usersList.length === 0) {
                 excelContent += `<tr><td colspan="8" style="text-align:center; color:#64748b;">ไม่มีข้อมูลรายชื่อพนักงาน</td></tr>`;
@@ -3778,14 +3799,14 @@
 
                     excelContent += `
                         <tr>
-                            <td>${idx + 1}</td>
+                            <td class="text-center">${idx + 1}</td>
                             <td>${uname}</td>
                             <td><b>${realName}</b></td>
                             <td>${role}</td>
-                            <td><b style="color:#166534;">${presentCount} วัน</b></td>
-                            <td><b style="color:#c2410c;">${lateCount} ครั้ง</b></td>
-                            <td><b style="color:#2563eb;">${otCount} ครั้ง</b></td>
-                            <td><b style="color:#7e22ce;">${leaveDaysCount} วัน</b></td>
+                            <td class="text-center"><b style="color:#166534;">${presentCount} วัน</b></td>
+                            <td class="text-center"><b style="color:#c2410c;">${lateCount} ครั้ง</b></td>
+                            <td class="text-center"><b style="color:#2563eb;">${otCount} ครั้ง</b></td>
+                            <td class="text-center"><b style="color:#7e22ce;">${leaveDaysCount} วัน</b></td>
                         </tr>`;
                 });
             }
@@ -3793,7 +3814,6 @@
             excelContent += `
                         </tbody>
                     </table>
-                </div>
             </body>
             </html>`;
 
