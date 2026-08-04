@@ -1246,12 +1246,11 @@
 </div>
 
 <script>
-    // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local, Domain & Trusted Tunnel) *********
-    const publicVPSDomainURL = 'https://oneunited.kppremium.shop/checkin-api';
-    const publicVPSTunnelURL = 'https://atlantic-darwin-cat-mathematics.trycloudflare.com/api';
+    // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local & Public Domain) *********
+    const publicVPSApiURL = 'https://oneunited.kppremium.shop/checkin-api';
     const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (window.location.origin && window.location.port === '3000');
     const isGitHubPages = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
-    const scriptURL = (isGitHubPages || !isLocalHost) ? publicVPSDomainURL : (window.location.origin + '/api');
+    const scriptURL = (isGitHubPages || !isLocalHost) ? publicVPSApiURL : (window.location.origin + '/api');
 
     // Fetch Interceptor for Ngrok & Localtunnel Bypass
     const originalFetch = window.fetch;
