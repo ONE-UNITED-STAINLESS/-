@@ -3541,249 +3541,350 @@
 
             let headerTitleLabel = (selM !== 'ALL' && monthNamesDict[selM] ? `ประจำเดือน ${monthNamesDict[selM]} ${selY !== 'ALL' ? parseInt(selY) + 543 : ''}` : `ประวัติทั้งหมด (ข้อมูล ณ วันที่ ${dateStamp})`);
 
-            let excelContent = `
-            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-            <head>
-                <meta charset="UTF-8">
-                <!--[if gte mso 9]>
-                <xml>
-                 <x:ExcelWorkbook>
-                  <x:ExcelWorksheets>
-                   <x:ExcelWorksheet>
-                    <x:Name>ประวัติการลงเวลาและOT</x:Name>
-                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                   </x:ExcelWorksheet>
-                   <x:ExcelWorksheet>
-                    <x:Name>คำขอแก้ไขเวลาทำงาน</x:Name>
-                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                   </x:ExcelWorksheet>
-                   <x:ExcelWorksheet>
-                    <x:Name>คำขอลาหยุดงาน</x:Name>
-                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                   </x:ExcelWorksheet>
-                   <x:ExcelWorksheet>
-                    <x:Name>สรุปสถิติพนักงาน</x:Name>
-                    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                   </x:ExcelWorksheet>
-                  </x:ExcelWorksheets>
-                 </x:ExcelWorkbook>
-                </xml>
-                <![endif]-->
-                <style>
-                    body { font-family: 'Prompt', 'Sarabun', Tahoma, sans-serif; font-size: 13px; }
-                    .title-cell { font-size: 15px; font-weight: bold; color: #1e3a8a; background-color: #dbeafe; text-align: center; vertical-align: middle; height: 45px; border: 1px solid #93c5fd; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                    th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: center; vertical-align: middle; }
-                    td { border: 1px solid #e2e8f0; padding: 7px 10px; font-size: 12px; vertical-align: middle; }
-                    .text-center { text-align: center; }
-                    .status-approved { color: #166534; background-color: #dcfce7; font-weight: bold; text-align: center; }
-                    .status-pending { color: #9a3412; background-color: #ffedd5; font-weight: bold; text-align: center; }
-                    .status-rejected { color: #991b1b; background-color: #fee2e2; font-weight: bold; text-align: center; }
-                </style>
-            </head>
-            <body>
-                <!-- SHEET 1: ประวัติการลงเวลาและ OT -->
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="9" class="title-cell">📊 รายงานประวัติการลงเวลาเข้า-ออกงาน และ OT (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
-                        </tr>
-                        <tr>
-                            <th style="width: 50px;">ลำดับ</th>
-                            <th style="width: 150px;">วันที่-เวลา</th>
-                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
-                            <th style="width: 130px;">สถานะการลงเวลา</th>
-                            <th style="width: 220px;">สถานที่ลงเวลา</th>
-                            <th style="width: 120px;">ละติจูด (Lat)</th>
-                            <th style="width: 120px;">ลองจิจูด (Lng)</th>
-                            <th style="width: 110px;">ระยะห่าง (เมตร)</th>
-                            <th style="width: 140px;">รูปถ่ายสแกนใบหน้า</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+            function escapeXml(unsafe) {
+                if (unsafe === null || unsafe === undefined) return '';
+                return String(unsafe)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&apos;');
+            }
+
+            let excelContent = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10"/>
+  </Style>
+  <Style ss:ID="TitleStyle">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="12" ss:Bold="1" ss:Color="#1E3A8A"/>
+   <Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#93C5FD"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#93C5FD"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#93C5FD"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#93C5FD"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="HeaderStyle">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10" ss:Bold="1" ss:Color="#0F172A"/>
+   <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="DataStyle">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="DataCenter">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="DataBold">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10" ss:Bold="1"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusApproved">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10" ss:Bold="1" ss:Color="#166534"/>
+   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusPending">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10" ss:Bold="1" ss:Color="#9A3412"/>
+   <Interior ss:Color="#FFEDD5" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusRejected">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Prompt" ss:Size="10" ss:Bold="1" ss:Color="#991B1B"/>
+   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+ </Styles>
+
+ <!-- WORKSHEET 1: ประวัติการลงเวลาและOT -->
+ <Worksheet ss:Name="ประวัติการลงเวลาและOT">
+  <Table>
+   <Column ss:Width="40"/>
+   <Column ss:Width="140"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="200"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="130"/>
+   <Row ss:Height="35">
+    <Cell ss:MergeAcross="8" ss:StyleID="TitleStyle"><Data ss:Type="String">📊 รายงานประวัติการลงเวลาเข้า-ออกงาน และ OT (${escapeXml(headerTitleLabel)}) - ONE UNITED STAINLESS CO., LTD.</Data></Cell>
+   </Row>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ลำดับ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่-เวลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ชื่อ-นามสกุลพนักงาน</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">สถานะการลงเวลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">สถานที่ลงเวลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ละติจูด (Lat)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ลองจิจูด (Lng)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ระยะห่าง (เมตร)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">รูปถ่ายสแกนใบหน้า</Data></Cell>
+   </Row>`;
 
             if (attendanceLogs.length === 0) {
-                excelContent += `<tr><td colspan="9" style="text-align:center; color:#64748b;">ไม่มีข้อมูลประวัติการลงเวลาในช่วงเดือนที่เลือก</td></tr>`;
+                excelContent += `
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="8" ss:StyleID="DataCenter"><Data ss:Type="String">ไม่มีข้อมูลประวัติการลงเวลาในช่วงเดือนที่เลือก</Data></Cell>
+   </Row>`;
             } else {
                 attendanceLogs.forEach((log, idx) => {
-                    let dt = log[0] || '-';
-                    let empName = log[1] || '-';
-                    let status = log[2] || '-';
-                    let lat = log[3] || '-';
-                    let lng = log[4] || '-';
-                    let dist = log[5] || '-';
-                    let loc = log[6] || '-';
+                    let dt = escapeXml(log[0] || '-');
+                    let empName = escapeXml(log[1] || '-');
+                    let status = escapeXml(log[2] || '-');
+                    let lat = escapeXml(log[3] || '-');
+                    let lng = escapeXml(log[4] || '-');
+                    let dist = escapeXml(log[5] || '-');
+                    let loc = escapeXml(log[6] || '-');
                     let imgUrl = log[7] || '-';
-                    let fullImgUrl = isValidImageUrl(imgUrl) ? getFullImageUrl(imgUrl) : '-';
+                    let fullImgUrl = isValidImageUrl(imgUrl) ? escapeXml(getFullImageUrl(imgUrl)) : '-';
 
                     excelContent += `
-                        <tr>
-                            <td class="text-center">${idx + 1}</td>
-                            <td class="text-center">${dt}</td>
-                            <td><b>${empName}</b></td>
-                            <td class="text-center"><b>${status}</b></td>
-                            <td>${loc}</td>
-                            <td class="text-center">${lat}</td>
-                            <td class="text-center">${lng}</td>
-                            <td class="text-center">${dist}</td>
-                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูรูปถ่าย</a>` : '-'}</td>
-                        </tr>`;
+   <Row ss:Height="22">
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="Number">${idx + 1}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${dt}</Data></Cell>
+    <Cell ss:StyleID="DataBold"><Data ss:Type="String">${empName}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${status}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${loc}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${lat}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${lng}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${dist}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"${fullImgUrl !== '-' ? ` ss:HRef="${fullImgUrl}"` : ''}><Data ss:Type="String">${fullImgUrl !== '-' ? 'ดูรูปถ่าย' : '-'}</Data></Cell>
+   </Row>`;
                 });
             }
 
             excelContent += `
-                        </tbody>
-                    </table>
+  </Table>
+ </Worksheet>
 
-                <br style="page-break-before:always; mso-break-type:section-break">
-
-                <!-- SHEET 2: คำขอแก้ไขเวลาทำงาน -->
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="8" class="title-cell">⏰ รายงานประวัติการยื่นคำขอแก้ไขเวลาทำงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
-                        </tr>
-                        <tr>
-                            <th style="width: 130px;">รหัสคำขอ</th>
-                            <th style="width: 150px;">วันที่ยื่นคำขอ</th>
-                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
-                            <th style="width: 140px;">ประเภทคำขอ</th>
-                            <th style="width: 160px;">วันที่/เวลา ที่ขอปรับปรุง</th>
-                            <th style="width: 220px;">เหตุผลของพนักงาน</th>
-                            <th style="width: 130px;">สถานะการอนุมัติ HR</th>
-                            <th style="width: 140px;">เอกสารหลักฐานแนบ</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+ <!-- WORKSHEET 2: คำขอแก้ไขเวลาทำงาน -->
+ <Worksheet ss:Name="คำขอแก้ไขเวลาทำงาน">
+  <Table>
+   <Column ss:Width="120"/>
+   <Column ss:Width="140"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="130"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="200"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="130"/>
+   <Row ss:Height="35">
+    <Cell ss:MergeAcross="7" ss:StyleID="TitleStyle"><Data ss:Type="String">⏰ รายงานประวัติการยื่นคำขอแก้ไขเวลาทำงาน (${escapeXml(headerTitleLabel)}) - ONE UNITED STAINLESS CO., LTD.</Data></Cell>
+   </Row>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">รหัสคำขอ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่ยื่นคำขอ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ชื่อ-นามสกุลพนักงาน</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ประเภทคำขอ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่/เวลา ที่ขอปรับปรุง</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">เหตุผลของพนักงาน</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">สถานะการอนุมัติ HR</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">เอกสารหลักฐานแนบ</Data></Cell>
+   </Row>`;
 
             if (timeReqs.length === 0) {
-                excelContent += `<tr><td colspan="8" style="text-align:center; color:#64748b;">ไม่มีรายการคำขอแก้ไขเวลาทำงานในช่วงเดือนที่เลือก</td></tr>`;
+                excelContent += `
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="7" ss:StyleID="DataCenter"><Data ss:Type="String">ไม่มีรายการคำขอแก้ไขเวลาทำงานในช่วงเดือนที่เลือก</Data></Cell>
+   </Row>`;
             } else {
                 timeReqs.forEach((r) => {
-                    let reqId = r[0] || '-';
-                    let reqDate = r[1] || '-';
-                    let empName = r[2] || '-';
-                    let reqType = r[3] || '-';
-                    let targetDetail = r[4] || '-';
-                    let reason = r[5] || '-';
+                    let reqId = escapeXml(r[0] || '-');
+                    let reqDate = escapeXml(r[1] || '-');
+                    let empName = escapeXml(r[2] || '-');
+                    let reqType = escapeXml(r[3] || '-');
+                    let targetDetail = escapeXml(r[4] || '-');
+                    let reason = escapeXml(r[5] || '-');
                     let status = r[8] || r[7] || 'Pending';
                     let imgUrl = r[6] || '-';
-                    let fullImgUrl = isValidImageUrl(imgUrl) ? getFullImageUrl(imgUrl) : '-';
+                    let fullImgUrl = isValidImageUrl(imgUrl) ? escapeXml(getFullImageUrl(imgUrl)) : '-';
 
-                    let statusClass = status === 'Approved' ? 'status-approved' : (status === 'Rejected' ? 'status-rejected' : 'status-pending');
+                    let statusStyle = status === 'Approved' ? 'StatusApproved' : (status === 'Rejected' ? 'StatusRejected' : 'StatusPending');
                     let statusTxt = status === 'Approved' ? 'อนุมัติแล้ว' : (status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
 
                     excelContent += `
-                        <tr>
-                            <td>${reqId}</td>
-                            <td class="text-center">${reqDate}</td>
-                            <td><b>${empName}</b></td>
-                            <td>${reqType}</td>
-                            <td class="text-center">${targetDetail}</td>
-                            <td>${reason}</td>
-                            <td class="${statusClass}">${statusTxt}</td>
-                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารหลักฐาน</a>` : '-'}</td>
-                        </tr>`;
+   <Row ss:Height="22">
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${reqId}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${reqDate}</Data></Cell>
+    <Cell ss:StyleID="DataBold"><Data ss:Type="String">${empName}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${reqType}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${targetDetail}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${reason}</Data></Cell>
+    <Cell ss:StyleID="${statusStyle}"><Data ss:Type="String">${statusTxt}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"${fullImgUrl !== '-' ? ` ss:HRef="${fullImgUrl}"` : ''}><Data ss:Type="String">${fullImgUrl !== '-' ? 'ดูเอกสารหลักฐาน' : '-'}</Data></Cell>
+   </Row>`;
                 });
             }
 
             excelContent += `
-                        </tbody>
-                    </table>
+  </Table>
+ </Worksheet>
 
-                <br style="page-break-before:always; mso-break-type:section-break">
-
-                <!-- SHEET 3: คำขอลาหยุดงาน -->
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="10" class="title-cell">🗓️ รายงานประวัติการยื่นคำขอลาหยุดงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
-                        </tr>
-                        <tr>
-                            <th style="width: 130px;">รหัสคำขอ</th>
-                            <th style="width: 150px;">วันที่ยื่นคำขอ</th>
-                            <th style="width: 200px;">ชื่อ-นามสกุลพนักงาน</th>
-                            <th style="width: 130px;">ประเภทการลา</th>
-                            <th style="width: 110px;">วันที่เริ่มลา</th>
-                            <th style="width: 110px;">วันที่สิ้นสุดลา</th>
-                            <th style="width: 90px;">จำนวนวันลา</th>
-                            <th style="width: 200px;">เหตุผลการขอลา</th>
-                            <th style="width: 130px;">สถานะการอนุมัติ HR</th>
-                            <th style="width: 140px;">ใบรับรองแพทย์/เอกสารแนบ</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+ <!-- WORKSHEET 3: คำขอลาหยุดงาน -->
+ <Worksheet ss:Name="คำขอลาหยุดงาน">
+  <Table>
+   <Column ss:Width="120"/>
+   <Column ss:Width="140"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="130"/>
+   <Row ss:Height="35">
+    <Cell ss:MergeAcross="9" ss:StyleID="TitleStyle"><Data ss:Type="String">🗓️ รายงานประวัติการยื่นคำขอลาหยุดงาน (${escapeXml(headerTitleLabel)}) - ONE UNITED STAINLESS CO., LTD.</Data></Cell>
+   </Row>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">รหัสคำขอ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่ยื่นคำขอ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ชื่อ-นามสกุลพนักงาน</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ประเภทการลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่เริ่มลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">วันที่สิ้นสุดลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">จำนวนวันลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">เหตุผลการขอลา</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">สถานะการอนุมัติ HR</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ใบรับรองแพทย์/เอกสารแนบ</Data></Cell>
+   </Row>`;
 
             if (leaveReqs.length === 0) {
-                excelContent += `<tr><td colspan="10" style="text-align:center; color:#64748b;">ไม่มีรายการคำขอลาหยุดงานในช่วงเดือนที่เลือก</td></tr>`;
+                excelContent += `
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="9" ss:StyleID="DataCenter"><Data ss:Type="String">ไม่มีรายการคำขอลาหยุดงานในช่วงเดือนที่เลือก</Data></Cell>
+   </Row>`;
             } else {
                 leaveReqs.forEach((r) => {
-                    let reqId = r[0] || '-';
-                    let reqDate = r[1] || '-';
-                    let empName = r[2] || '-';
-                    let leaveType = r[3] || '-';
-                    let startDate = r[4] || '-';
-                    let endDate = r[5] || '-';
-                    let daysCount = r[6] || '-';
-                    let reason = r[7] || '-';
+                    let reqId = escapeXml(r[0] || '-');
+                    let reqDate = escapeXml(r[1] || '-');
+                    let empName = escapeXml(r[2] || '-');
+                    let leaveType = escapeXml(r[3] || '-');
+                    let startDate = escapeXml(r[4] || '-');
+                    let endDate = escapeXml(r[5] || '-');
+                    let daysCount = escapeXml(r[6] || '-');
+                    let reason = escapeXml(r[7] || '-');
                     let status = r[10] || r[9] || 'Pending';
                     let imgUrl = r[8] || '-';
-                    let fullImgUrl = isValidImageUrl(imgUrl) ? getFullImageUrl(imgUrl) : '-';
+                    let fullImgUrl = isValidImageUrl(imgUrl) ? escapeXml(getFullImageUrl(imgUrl)) : '-';
 
-                    let statusClass = status === 'Approved' ? 'status-approved' : (status === 'Rejected' ? 'status-rejected' : 'status-pending');
+                    let statusStyle = status === 'Approved' ? 'StatusApproved' : (status === 'Rejected' ? 'StatusRejected' : 'StatusPending');
                     let statusTxt = status === 'Approved' ? 'อนุมัติแล้ว' : (status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
 
                     excelContent += `
-                        <tr>
-                            <td>${reqId}</td>
-                            <td class="text-center">${reqDate}</td>
-                            <td><b>${empName}</b></td>
-                            <td>${leaveType}</td>
-                            <td class="text-center">${startDate}</td>
-                            <td class="text-center">${endDate}</td>
-                            <td class="text-center"><b>${daysCount} วัน</b></td>
-                            <td>${reason}</td>
-                            <td class="${statusClass}">${statusTxt}</td>
-                            <td class="text-center">${fullImgUrl !== '-' ? `<a href="${fullImgUrl}" target="_blank">ดูเอกสารแนบ</a>` : '-'}</td>
-                        </tr>`;
+   <Row ss:Height="22">
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${reqId}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${reqDate}</Data></Cell>
+    <Cell ss:StyleID="DataBold"><Data ss:Type="String">${empName}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${leaveType}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${startDate}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${endDate}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${daysCount} วัน</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${reason}</Data></Cell>
+    <Cell ss:StyleID="${statusStyle}"><Data ss:Type="String">${statusTxt}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"${fullImgUrl !== '-' ? ` ss:HRef="${fullImgUrl}"` : ''}><Data ss:Type="String">${fullImgUrl !== '-' ? 'ดูเอกสารแนบ' : '-'}</Data></Cell>
+   </Row>`;
                 });
             }
 
             excelContent += `
-                        </tbody>
-                    </table>
+  </Table>
+ </Worksheet>
 
-                <br style="page-break-before:always; mso-break-type:section-break">
-
-                <!-- SHEET 4: สรุปสถิติรายบุคคล -->
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="8" class="title-cell">👥 รายงานสรุปสถิติจำนวนวันทำงาน OT และใบลา รายพนักงาน (${headerTitleLabel}) - ONE UNITED STAINLESS CO., LTD.</td>
-                        </tr>
-                        <tr>
-                            <th style="width: 50px;">ลำดับ</th>
-                            <th style="width: 150px;">ชื่อเข้าใช้งาน (Username)</th>
-                            <th style="width: 220px;">ชื่อ-นามสกุลจริง</th>
-                            <th style="width: 110px;">ระดับสิทธิ์</th>
-                            <th style="width: 130px;">จำนวนวันมาทำงาน</th>
-                            <th style="width: 130px;">จำนวนครั้งเข้าสาย</th>
-                            <th style="width: 130px;">จำนวนครั้งทำ OT</th>
-                            <th style="width: 130px;">จำนวนวันลาหยุด</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+ <!-- WORKSHEET 4: สรุปสถิติพนักงาน -->
+ <Worksheet ss:Name="สรุปสถิติพนักงาน">
+  <Table>
+   <Column ss:Width="40"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="200"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Row ss:Height="35">
+    <Cell ss:MergeAcross="7" ss:StyleID="TitleStyle"><Data ss:Type="String">👥 รายงานสรุปสถิติจำนวนวันทำงาน OT และใบลา รายพนักงาน (${escapeXml(headerTitleLabel)}) - ONE UNITED STAINLESS CO., LTD.</Data></Cell>
+   </Row>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ลำดับ</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ชื่อเข้าใช้งาน (Username)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ชื่อ-นามสกุลจริง</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ระดับสิทธิ์</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">จำนวนวันมาทำงาน</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">จำนวนครั้งเข้าสาย</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">จำนวนครั้งทำ OT</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">จำนวนวันลาหยุด</Data></Cell>
+   </Row>`;
 
             if (usersList.length === 0) {
-                excelContent += `<tr><td colspan="8" style="text-align:center; color:#64748b;">ไม่มีข้อมูลรายชื่อพนักงาน</td></tr>`;
+                excelContent += `
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="7" ss:StyleID="DataCenter"><Data ss:Type="String">ไม่มีข้อมูลรายชื่อพนักงาน</Data></Cell>
+   </Row>`;
             } else {
                 usersList.forEach((u, idx) => {
-                    let uname = u[0] || '-';
-                    let role = u[2] || 'employee';
-                    let realName = u[3] || uname;
+                    let uname = escapeXml(u[0] || '-');
+                    let role = escapeXml(u[2] || 'employee');
+                    let realName = escapeXml(u[3] || uname);
 
-                    let uLogs = attendanceLogs.filter(l => l[1] === realName || l[1] === uname);
-                    let uLeaves = leaveReqs.filter(l => (l[2] === realName || l[2] === uname) && (l[10] === 'Approved' || l[9] === 'Approved'));
+                    let uLogs = attendanceLogs.filter(l => l[1] === (u[3] || uname) || l[1] === (u[0] || uname));
+                    let uLeaves = leaveReqs.filter(l => (l[2] === (u[3] || uname) || l[2] === (u[0] || uname)) && (l[10] === 'Approved' || l[9] === 'Approved'));
 
                     let presentCount = uLogs.filter(l => l[2] && l[2].includes('เข้างาน')).length;
                     let otCount = uLogs.filter(l => l[2] && l[2].includes('OT')).length;
@@ -3798,24 +3899,23 @@
                     let leaveDaysCount = uLeaves.reduce((acc, curr) => acc + (parseFloat(curr[6]) || 1), 0);
 
                     excelContent += `
-                        <tr>
-                            <td class="text-center">${idx + 1}</td>
-                            <td>${uname}</td>
-                            <td><b>${realName}</b></td>
-                            <td>${role}</td>
-                            <td class="text-center"><b style="color:#166534;">${presentCount} วัน</b></td>
-                            <td class="text-center"><b style="color:#c2410c;">${lateCount} ครั้ง</b></td>
-                            <td class="text-center"><b style="color:#2563eb;">${otCount} ครั้ง</b></td>
-                            <td class="text-center"><b style="color:#7e22ce;">${leaveDaysCount} วัน</b></td>
-                        </tr>`;
+   <Row ss:Height="22">
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="Number">${idx + 1}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${uname}</Data></Cell>
+    <Cell ss:StyleID="DataBold"><Data ss:Type="String">${realName}</Data></Cell>
+    <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${role}</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${presentCount} วัน</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${lateCount} ครั้ง</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${otCount} ครั้ง</Data></Cell>
+    <Cell ss:StyleID="DataCenter"><Data ss:Type="String">${leaveDaysCount} วัน</Data></Cell>
+   </Row>`;
                 });
             }
 
             excelContent += `
-                        </tbody>
-                    </table>
-            </body>
-            </html>`;
+  </Table>
+ </Worksheet>
+</Workbook>`;
 
             let blob = new Blob(['\uFEFF' + excelContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
             let link = document.createElement('a');
