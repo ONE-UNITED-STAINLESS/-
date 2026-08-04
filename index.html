@@ -1247,7 +1247,7 @@
 
 <script>
     // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local & Public Trusted Tunnel) *********
-    const publicVPSApiURL = 'https://friendship-liberal-transport-plaza.trycloudflare.com/api';
+    const publicVPSApiURL = 'https://continuing-decreased-approaches-trunk.trycloudflare.com/api';
     const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (window.location.origin && window.location.port === '3000');
     const isGitHubPages = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
     const scriptURL = (isGitHubPages || !isLocalHost) ? publicVPSApiURL : (window.location.origin + '/api');
@@ -1310,7 +1310,7 @@
         if (!isValidImageUrl(url)) return '';
         let u = url.trim();
 
-        let uploadHost = 'https://friendship-liberal-transport-plaza.trycloudflare.com/uploads';
+        let uploadHost = 'https://continuing-decreased-approaches-trunk.trycloudflare.com/uploads';
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             uploadHost = window.location.origin + '/uploads';
         }
