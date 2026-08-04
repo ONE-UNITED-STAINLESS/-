@@ -1247,25 +1247,26 @@
 
 <script>
     // ********* URL ของ Node.js Backend Server (สลับอัตโนมัติระหว่าง Local & Public Trusted Tunnel) *********
-    const publicVPSApiURL = 'https://checkin-one-united-vps.loca.lt/api';
+    const publicVPSApiURL = 'https://friendship-liberal-transport-plaza.trycloudflare.com/api';
     const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || (window.location.origin && window.location.port === '3000');
     const isGitHubPages = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
     const scriptURL = (isGitHubPages || !isLocalHost) ? publicVPSApiURL : (window.location.origin + '/api');
 
     // Fetch Interceptor for Ngrok & Localtunnel Bypass
     const originalFetch = window.fetch;
-    window.fetch = function(url, options = {}) {
-        if (typeof url === 'string' && (url.includes('ngrok') || url.includes('loca.lt'))) {
-            options.headers = options.headers || {};
-            if (options.headers instanceof Headers) {
-                options.headers.set('ngrok-skip-browser-warning', 'true');
-                options.headers.set('bypass-tunnel-reminder', 'true');
-            } else {
-                options.headers['ngrok-skip-browser-warning'] = 'true';
-                options.headers['bypass-tunnel-reminder'] = 'true';
-            }
+    window.fetch = function(input, init = {}) {
+        init = init || {};
+        init.headers = init.headers || {};
+        if (init.headers instanceof Headers) {
+            init.headers.set('ngrok-skip-browser-warning', 'true');
+            init.headers.set('bypass-tunnel-reminder', 'true');
+            init.headers.set('Bypass-Tunnel-Reminder', 'true');
+        } else {
+            init.headers['ngrok-skip-browser-warning'] = 'true';
+            init.headers['bypass-tunnel-reminder'] = 'true';
+            init.headers['Bypass-Tunnel-Reminder'] = 'true';
         }
-        return originalFetch(url, options);
+        return originalFetch(input, init);
     };
     
     let currentUser = '', currentRole = '', currentRealName = '';
@@ -1309,7 +1310,7 @@
         if (!isValidImageUrl(url)) return '';
         let u = url.trim();
 
-        let uploadHost = 'https://checkin-one-united-vps.loca.lt/uploads';
+        let uploadHost = 'https://friendship-liberal-transport-plaza.trycloudflare.com/uploads';
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             uploadHost = window.location.origin + '/uploads';
         }
