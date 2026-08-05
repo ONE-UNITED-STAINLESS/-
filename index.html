@@ -354,6 +354,67 @@
                 </div>
             </div>
 
+            <!-- ================= ฟอร์มแก้ไขข้อมูลคำขอ (สำหรับ HR / Admin) ================= -->
+            <div id="reqModalEditForm" class="hidden" style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:15px; margin-bottom:15px;">
+                <h4 style="margin:0 0 10px 0; color:#0369a1; font-size:14px; font-weight:700;">✏️ แก้ไขข้อมูลคำขอ (สำหรับ HR / Admin)</h4>
+                
+                <div id="editGroupTime" class="hidden" style="margin-bottom:10px;">
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">ประเภทการแก้ไขเวลา:</label>
+                    <select id="editReqTypeTime" class="form-control" style="font-size:13px; padding:8px;">
+                        <option value="ลืมเช็คอิน">ลืมเช็คอิน</option>
+                        <option value="เช็คอิน (แก้ไข)">เช็คอิน (แก้ไข)</option>
+                        <option value="เช็คเอาท์ (แก้ไข)">เช็คเอาท์ (แก้ไข)</option>
+                    </select>
+                    
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin:8px 0 4px 0;">วันและเวลาที่ขอแก้ไข (YYYY-MM-DD HH:mm):</label>
+                    <input type="text" id="editReqTargetTime" class="form-control" style="font-size:13px; padding:8px;" placeholder="YYYY-MM-DD HH:mm">
+                </div>
+
+                <div id="editGroupLeave" class="hidden" style="margin-bottom:10px;">
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">ประเภทการลา:</label>
+                    <select id="editReqTypeLeave" class="form-control" style="font-size:13px; padding:8px;">
+                        <option value="ลากิจ">ลากิจ</option>
+                        <option value="ลาป่วย">ลาป่วย</option>
+                        <option value="ลาพักร้อน">ลาพักร้อน</option>
+                        <option value="ลาคลอด">ลาคลอด</option>
+                        <option value="ลาอื่นๆ">ลาอื่นๆ</option>
+                    </select>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                        <div>
+                            <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">วันเริ่มลา:</label>
+                            <input type="date" id="editReqStartLeave" class="form-control" style="font-size:13px; padding:8px;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">วันสิ้นสุดลา:</label>
+                            <input type="date" id="editReqEndLeave" class="form-control" style="font-size:13px; padding:8px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editGroupOther" class="hidden" style="margin-bottom:10px;">
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">หมวดหมู่คำขอ:</label>
+                    <input type="text" id="editReqCategoryOther" class="form-control" style="font-size:13px; padding:8px;">
+                </div>
+
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">เหตุผล / รายละเอียด:</label>
+                    <textarea id="editReqReason" class="form-control" style="font-size:13px; padding:8px; height:65px;"></textarea>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:12px; color:#334155; font-weight:600; display:block; margin-bottom:4px;">ผู้มีอำนาจพิจารณาอนุมัติ:</label>
+                    <select id="editReqApprover" class="form-control" style="font-size:13px; padding:8px;">
+                        <option value="HR">🏢 HR / แอดมินกลาง</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button onclick="saveEditedRequest()" class="btn-primary" style="flex:1; padding:8px; font-size:13px; font-weight:600;">💾 บันทึกการแก้ไข</button>
+                    <button onclick="cancelEditRequestModal()" class="btn-grey" style="padding:8px 16px; font-size:13px;">✕ ยกเลิก</button>
+                </div>
+            </div>
+
             <div id="reqModalImageContainer" class="hidden" style="margin-bottom: 15px; text-align: center;">
                 <span style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 5px; text-align: left;">รูปภาพ/เอกสารแนบ:</span>
                 <div style="background: #0f172a; border-radius: 12px; padding: 8px; max-height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
@@ -362,9 +423,10 @@
             </div>
         </div>
 
-        <div id="reqModalActionButtons" style="margin-top: 15px; display: flex; gap: 10px; flex-shrink: 0;">
-            <button id="btnModalApprove" class="btn-green" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
-            <button id="btnModalReject" class="btn-red" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
+        <div id="reqModalActionButtons" style="margin-top: 15px; display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap;">
+            <button id="btnModalEdit" onclick="openEditRequestModal()" class="btn-yellow hidden" style="flex: 1; min-width: 120px; padding: 12px; font-size: 14px; font-weight: 600;">✏️ แก้ไขคำขอ</button>
+            <button id="btnModalApprove" class="btn-green" style="flex: 1; min-width: 120px; padding: 12px; font-size: 14px; font-weight: 600;">✅ อนุมัติ</button>
+            <button id="btnModalReject" class="btn-red" style="flex: 1; min-width: 120px; padding: 12px; font-size: 14px; font-weight: 600;">❌ ปฏิเสธ</button>
         </div>
     </div>
 </div>
@@ -532,6 +594,13 @@
         </div>
 
         <div id="emp-tab-request" class="hidden">
+            <div id="hrEmpSelectBox" class="hidden" style="margin-bottom: 12px; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 12px; padding: 12px;">
+                <label style="font-size: 12px; color: #0369a1; font-weight: 700; display: block; margin-bottom: 4px;">👤 สิทธิ์ HR / แอดมิน: เลือกยื่นคำขอแทนพนักงาน:</label>
+                <select id="hrEmpSelectForReq" class="form-control" style="font-size: 13px; font-weight: 600; color: #0369a1; border-color: #38bdf8; background: white; margin: 0;">
+                    <option value="">-- ยื่นให้ตนเอง --</option>
+                </select>
+            </div>
+
             <select id="reqType" onchange="toggleReqForm()">
                 <option value="time">ส่งคำขอแก้ไขเวลาทำงาน</option>
                 <option value="leave">ส่งคำขอลาหยุด</option>
@@ -1773,8 +1842,30 @@
         else if(tab === 'request') { 
             document.getElementById('emp-tab-request').classList.remove('hidden'); 
             document.getElementById('btnEmpTabRequest').classList.add('active'); 
+            populateHrEmpSelectDropdown();
             loadMyRequests(); 
         }
+
+    function populateHrEmpSelectDropdown() {
+        let selectEl = document.getElementById('hrEmpSelectForReq');
+        let boxEl = document.getElementById('hrEmpSelectBox');
+        if (!selectEl || !boxEl) return;
+        
+        if (currentRole === 'hr') {
+            boxEl.classList.remove('hidden');
+            selectEl.innerHTML = `<option value="">-- ยื่นให้ตนเอง (${currentRealName || currentUser}) --</option>`;
+            let userList = (window.hrAllUsers && window.hrAllUsers.length > 0) ? window.hrAllUsers : (availableApprovers || []);
+            userList.forEach(u => {
+                let uName = u.username;
+                let rName = u.realname || uName;
+                if (uName !== currentUser) {
+                    selectEl.innerHTML += `<option value="${uName}">👤 ${rName} (${uName})</option>`;
+                }
+            });
+        } else {
+            boxEl.classList.add('hidden');
+        }
+    }
         else if(tab === 'holidays') { 
             document.getElementById('emp-tab-holidays').classList.remove('hidden'); 
             document.getElementById('btnEmpTabHolidays').classList.add('active'); 
@@ -1976,16 +2067,21 @@
                 }).addTo(empMapObj); 
 
                 let empLocIcon = L.divIcon({
-                    className: 'map-loc-badge-container',
-                    html: `<div style="background:#059669; color:#ffffff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:18px; white-space:nowrap; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:inline-flex; align-items:center; gap:4px;">
-                            <span>🏢</span> <span>${loc.name}</span>
+                    className: 'compact-map-pin',
+                    html: `<div style="background:#059669; color:white; width:26px; height:26px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow:0 3px 6px rgba(0,0,0,0.3); border:2px solid #ffffff; cursor:pointer;" title="${loc.name}">
+                            <span style="transform: rotate(45deg); font-size:11px;">🏢</span>
                            </div>`,
-                    iconSize: [130, 30],
-                    iconAnchor: [65, 15]
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 26]
                 });
 
                 L.marker([lLat, lLon], { icon: empLocIcon }).addTo(empMapObj)
-                 .bindPopup(`<b>🏢 ${loc.name}</b><br>รัศมีเช็คอิน: ${lRad} เมตร`);
+                 .bindPopup(`
+                     <div style="font-family:'Prompt',sans-serif; text-align:center; padding:4px;">
+                         <b style="color:#059669; font-size:13px;">🏢 ${loc.name}</b><br>
+                         <span style="font-size:12px; color:#475569;">รัศมีเช็คอินอนุญาต: ${lRad} เมตร</span>
+                     </div>
+                 `);
             }
         });
 
@@ -2081,7 +2177,11 @@
     function submitRequest(type) {
         document.getElementById('reqMsg').innerText = "กำลังส่ง..."; 
         let fileInput = type === 'time' ? document.getElementById('timeFile') : (type === 'leave' ? document.getElementById('leaveFile') : document.getElementById('otherFile'));
-        let params = { action: 'submit_request', req_type: type, username: currentUser };
+        
+        let hrSelectedUser = (currentRole === 'hr' && document.getElementById('hrEmpSelectForReq')) ? document.getElementById('hrEmpSelectForReq').value : '';
+        let targetUsername = hrSelectedUser ? hrSelectedUser : currentUser;
+
+        let params = { action: 'submit_request', req_type: type, username: targetUsername, role: currentRole };
         if (type === 'time') { 
             params.edit_type = document.getElementById('timeEditType').value; 
             params.edit_date = document.getElementById('timeEditDate').value; 
@@ -2747,10 +2847,17 @@
         if (modal) modal.classList.add('hidden');
     }
 
+    let currentDetailReqItem = null;
+    let currentDetailSheet = '';
+
     function openRequestDetailModal(sheet, reqId) {
         let items = sheet === 'TimeRequests' ? (hrRawRequests.time || []) : ((sheet === 'LeaveRequests' || sheet === 'Leaves') ? (hrRawRequests.leave || []) : (hrNotificationsData.other || []));
         let item = items.find(r => (Array.isArray(r) ? r[0] === reqId : r.id === reqId));
         if (!item) return;
+
+        currentDetailReqItem = item;
+        currentDetailSheet = sheet;
+        cancelEditRequestModal();
 
         let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover, approvedBy;
 
@@ -2854,6 +2961,10 @@
             imgContainer.classList.add('hidden');
         }
 
+        let editBtnHtml = (currentRole === 'hr') ? `
+            <button class="btn-yellow" onclick="openEditRequestModal()" style="padding: 10px 14px; font-size: 14px; font-weight: 600;">✏️ แก้ไขคำขอ</button>
+        ` : '';
+
         let actionBtns = document.getElementById('reqModalActionButtons');
         if (status === 'Pending') {
             if (canApproveThis) {
@@ -2861,9 +2972,10 @@
                     <div style="width:100%; margin-bottom:10px; font-size:12px; color:#0369a1; background:#e0f2fe; padding:8px 12px; border-radius:8px; text-align:center;">
                         🎯 ท่านคือผู้มีอำนาจพิจารณาอนุมัติคำขอนี้
                     </div>
-                    <div style="display:flex; gap:10px; width:100%;">
-                        <button class="btn-green" onclick="approveReq('${sheet}', '${reqId}', 'Approved')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
-                        <button class="btn-red" onclick="approveReq('${sheet}', '${reqId}', 'Rejected')" style="flex: 1; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
+                    <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap;">
+                        ${editBtnHtml}
+                        <button class="btn-green" onclick="approveReq('${sheet}', '${reqId}', 'Approved')" style="flex: 1; min-width:110px; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
+                        <button class="btn-red" onclick="approveReq('${sheet}', '${reqId}', 'Rejected')" style="flex: 1; min-width:110px; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
                     </div>
                 `;
             } else {
@@ -2872,16 +2984,133 @@
                         🔒 <b>คำขอนี้ระบุส่งถึง "${targetApproverName}" เพื่อพิจารณาอนุมัติเท่านั้น</b><br>
                         (HR / แอดมิน ดูข้อมูลได้เท่านั้น ไม่สามารถกดอนุมัติแทนผู้มีสิทธิ์ที่ระบุได้)
                     </div>
-                    <button class="btn-grey" onclick="closeRequestDetailModal()" style="width:100%; padding:10px;">ปิดหน้าต่าง</button>
+                    <div style="display:flex; gap:10px; width:100%;">
+                        ${editBtnHtml}
+                        <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; padding:10px;">ปิดหน้าต่าง</button>
+                    </div>
                 `;
             }
             actionBtns.classList.remove('hidden');
         } else {
-            actionBtns.innerHTML = `<button class="btn-grey" onclick="closeRequestDetailModal()" style="width:100%; padding:10px;">ปิดหน้าต่าง (พิจารณาแล้ว)</button>`;
+            actionBtns.innerHTML = `
+                <div style="display:flex; gap:10px; width:100%;">
+                    ${editBtnHtml}
+                    <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; padding:10px;">ปิดหน้าต่าง (พิจารณาแล้ว)</button>
+                </div>
+            `;
         }
 
         let modal = document.getElementById('requestDetailModal');
         if (modal) modal.classList.remove('hidden');
+    }
+
+    function openEditRequestModal() {
+        if (!currentDetailReqItem) return;
+        document.getElementById('reqModalEditForm').classList.remove('hidden');
+        
+        let sheet = currentDetailSheet;
+        let item = currentDetailReqItem;
+
+        document.getElementById('editGroupTime').classList.add('hidden');
+        document.getElementById('editGroupLeave').classList.add('hidden');
+        document.getElementById('editGroupOther').classList.add('hidden');
+
+        document.getElementById('editReqReason').value = (Array.isArray(item) ? (sheet === 'TimeRequests' ? item[5] : item[7]) : item.reason) || '';
+
+        let appSelect = document.getElementById('editReqApprover');
+        if (appSelect) {
+            appSelect.innerHTML = `<option value="HR">🏢 HR / แอดมินกลาง</option>`;
+            if (availableApprovers && availableApprovers.length > 0) {
+                availableApprovers.forEach(a => {
+                    appSelect.innerHTML += `<option value="${a.username}">👤 ${a.realname} (${a.username})</option>`;
+                });
+            }
+            let targetApp = (Array.isArray(item) ? (sheet === 'TimeRequests' ? item[10] : item[12]) : item.target_approver) || 'HR';
+            appSelect.value = targetApp;
+        }
+
+        if (sheet === 'TimeRequests') {
+            document.getElementById('editGroupTime').classList.remove('hidden');
+            document.getElementById('editReqTypeTime').value = (Array.isArray(item) ? item[3] : item.edit_type) || 'ลืมเช็คอิน';
+            document.getElementById('editReqTargetTime').value = (Array.isArray(item) ? item[4] : item.target_datetime) || '';
+        } else if (sheet === 'LeaveRequests' || sheet === 'Leaves') {
+            document.getElementById('editGroupLeave').classList.remove('hidden');
+            document.getElementById('editReqTypeLeave').value = (Array.isArray(item) ? item[3] : item.leave_type) || 'ลากิจ';
+            document.getElementById('editReqStartLeave').value = formatDateForInput(Array.isArray(item) ? item[4] : item.start_date);
+            document.getElementById('editReqEndLeave').value = formatDateForInput(Array.isArray(item) ? item[5] : item.end_date);
+        } else {
+            document.getElementById('editGroupOther').classList.remove('hidden');
+            document.getElementById('editReqCategoryOther').value = (Array.isArray(item) ? item[3] : (item.category || item.title)) || 'คำขออื่นๆ';
+        }
+    }
+
+    function cancelEditRequestModal() {
+        let el = document.getElementById('reqModalEditForm');
+        if (el) el.classList.add('hidden');
+    }
+
+    function saveEditedRequest() {
+        if (!currentDetailReqItem) return;
+        let sheet = currentDetailSheet;
+        let reqId = Array.isArray(currentDetailReqItem) ? currentDetailReqItem[0] : (currentDetailReqItem.req_id || currentDetailReqItem.id);
+        let reason = document.getElementById('editReqReason').value;
+        let targetApprover = document.getElementById('editReqApprover').value;
+
+        let params = {
+            action: 'edit_request_details',
+            sheet_name: sheet,
+            req_id: reqId,
+            role: currentRole,
+            username: currentUser,
+            reason: reason,
+            target_approver: targetApprover
+        };
+
+        if (sheet === 'TimeRequests') {
+            params.edit_type = document.getElementById('editReqTypeTime').value;
+            params.target_datetime = document.getElementById('editReqTargetTime').value;
+        } else if (sheet === 'LeaveRequests' || sheet === 'Leaves') {
+            params.leave_type = document.getElementById('editReqTypeLeave').value;
+            params.start_date = document.getElementById('editReqStartLeave').value;
+            params.end_date = document.getElementById('editReqEndLeave').value;
+            
+            let sDate = new Date(params.start_date);
+            let eDate = new Date(params.end_date);
+            let diffDays = Math.ceil((eDate - sDate) / (1000 * 60 * 60 * 24)) + 1;
+            params.days = isNaN(diffDays) || diffDays < 1 ? 1 : diffDays;
+        } else {
+            params.category = document.getElementById('editReqCategoryOther').value;
+        }
+
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) })
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.status === 'success') {
+                alert("✅ บันทึกการแก้ไขข้อมูลคำขอเรียบร้อยแล้ว!");
+                cancelEditRequestModal();
+                closeRequestDetailModal();
+                try { if (typeof loadRequests === 'function') loadRequests(); } catch(e){}
+                try { if (typeof refreshInitData === 'function') refreshInitData(); } catch(e){}
+            } else {
+                alert("เกิดข้อผิดพลาด: " + (res.message || "ไม่สามารถบันทึกได้"));
+            }
+        })
+        .catch(err => {
+            console.error("saveEditedRequest error:", err);
+            alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+        });
+    }
+
+    function formatDateForInput(dStr) {
+        if (!dStr) return '';
+        try {
+            let d = new Date(dStr);
+            if (isNaN(d.getTime())) return dStr;
+            let year = d.getFullYear();
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        } catch(e) { return dStr; }
     }
 
     function closeRequestDetailModal() {
@@ -3250,24 +3479,24 @@
                         radius: lRad
                     }).addTo(hrStaticLocGroup);
 
-                    // 2. Custom Badge Marker with pin icon & location name
+                    // 2. Compact sleek pin marker (28px)
                     let locIcon = L.divIcon({
-                        className: 'map-loc-badge-container',
-                        html: `<div style="background:#0284c7; color:#ffffff; font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap; border:2px solid #ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.35); display:inline-flex; align-items:center; gap:6px; cursor:pointer;" onclick="openEditLocByIndex(${idx})">
-                                <span style="font-size:14px;">📍</span> <span>${loc.name}</span>
+                        className: 'compact-map-pin',
+                        html: `<div style="background:#0284c7; color:white; width:28px; height:28px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,0.35); border:2px solid #ffffff; cursor:pointer;" title="${loc.name}">
+                                <span style="transform: rotate(45deg); font-size:12px; font-weight:bold;">📍</span>
                                </div>`,
-                        iconSize: [140, 34],
-                        iconAnchor: [70, 17]
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 28]
                     });
 
                     let locMarker = L.marker([lLat, lLon], { icon: locIcon }).addTo(hrStaticLocGroup);
                     
                     locMarker.bindPopup(`
-                        <div style="font-family:'Prompt',sans-serif; text-align:center; padding:4px;">
-                            <h4 style="margin:0 0 4px 0; color:#0284c7; font-size:14px;">📍 ${loc.name}</h4>
+                        <div style="font-family:'Prompt',sans-serif; text-align:center; padding:6px; min-width:180px;">
+                            <h4 style="margin:0 0 4px 0; color:#0284c7; font-size:14px; font-weight:700;">📍 ${loc.name}</h4>
                             <p style="margin:0; font-size:12px; color:#475569;">พิกัด: ${lLat.toFixed(6)}, ${lLon.toFixed(6)}</p>
                             <p style="margin:2px 0 8px 0; font-size:12px; color:#166534; font-weight:600;">รัศมีเช็คอิน: ${lRad} เมตร</p>
-                            <button onclick="openEditLocByIndex(${idx})" style="background:#0284c7; color:white; border:none; padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">✏️ แก้ไขสถานที่นี้</button>
+                            <button onclick="openEditLocByIndex(${idx})" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; width:100%;">✏️ เลือกเพื่อแก้ไขสถานที่นี้</button>
                         </div>
                     `);
                 }
