@@ -1845,27 +1845,6 @@
             populateHrEmpSelectDropdown();
             loadMyRequests(); 
         }
-
-    function populateHrEmpSelectDropdown() {
-        let selectEl = document.getElementById('hrEmpSelectForReq');
-        let boxEl = document.getElementById('hrEmpSelectBox');
-        if (!selectEl || !boxEl) return;
-        
-        if (currentRole === 'hr') {
-            boxEl.classList.remove('hidden');
-            selectEl.innerHTML = `<option value="">-- ยื่นให้ตนเอง (${currentRealName || currentUser}) --</option>`;
-            let userList = (window.hrAllUsers && window.hrAllUsers.length > 0) ? window.hrAllUsers : (availableApprovers || []);
-            userList.forEach(u => {
-                let uName = u.username;
-                let rName = u.realname || uName;
-                if (uName !== currentUser) {
-                    selectEl.innerHTML += `<option value="${uName}">👤 ${rName} (${uName})</option>`;
-                }
-            });
-        } else {
-            boxEl.classList.add('hidden');
-        }
-    }
         else if(tab === 'holidays') { 
             document.getElementById('emp-tab-holidays').classList.remove('hidden'); 
             document.getElementById('btnEmpTabHolidays').classList.add('active'); 
@@ -1876,6 +1855,49 @@
             if (document.getElementById('btnEmpTabApprovals')) document.getElementById('btnEmpTabApprovals').classList.add('active'); 
             loadRequests(); 
         }
+    }
+
+    let globalAllUsers = [];
+
+    function populateHrEmpSelectDropdown() {
+        let selectEl = document.getElementById('hrEmpSelectForReq');
+        let boxEl = document.getElementById('hrEmpSelectBox');
+        if (!selectEl || !boxEl) return;
+        
+        if (currentRole === 'hr') {
+            boxEl.classList.remove('hidden');
+            
+            if (!globalAllUsers || globalAllUsers.length === 0) {
+                fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) })
+                .then(r => r.json())
+                .then(d => {
+                    if (d && d.data && d.data.length > 0) {
+                        globalAllUsers = d.data.map(u => ({ username: u[0], realname: u[3] || u[0] }));
+                        renderHrEmpDropdownOptions(selectEl);
+                    }
+                })
+                .catch(() => {
+                    renderHrEmpDropdownOptions(selectEl);
+                });
+            } else {
+                renderHrEmpDropdownOptions(selectEl);
+            }
+        } else {
+            boxEl.classList.add('hidden');
+        }
+    }
+
+    function renderHrEmpDropdownOptions(selectEl) {
+        if (!selectEl) return;
+        selectEl.innerHTML = `<option value="">-- ยื่นให้ตนเอง (${currentRealName || currentUser}) --</option>`;
+        let list = (globalAllUsers && globalAllUsers.length > 0) ? globalAllUsers : (availableApprovers || []);
+        list.forEach(u => {
+            let uName = u.username;
+            let rName = u.realname || uName;
+            if (uName && uName !== currentUser) {
+                selectEl.innerHTML += `<option value="${uName}">👤 ${rName} (${uName})</option>`;
+            }
+        });
     }
 
     function toggleReqForm() {
