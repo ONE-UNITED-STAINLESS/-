@@ -2366,71 +2366,6 @@
 
     function fetchUsersForDropdown() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_users'}) }).then(r=>r.json()).then(d => { let sel = document.getElementById('hrCalUserSelect'); sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; d.data.forEach(u => { if(u[0]) { let name = u[3] ? u[3] : u[0]; sel.innerHTML += `<option value="${name}">${name}</option>`; } }); }); }
     
-    function openRequestDetailModal(item, sheet) {
-        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover;
-        let approvedBy = '';
-        if (Array.isArray(item)) {
-            status = item[7] || item[8];
-            empName = item[2];
-            reqDate = item[1];
-            reqType = item[3];
-            targetDetail = sheet === 'TimeRequests' ? item[4] : `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
-            reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
-            imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
-            targetApprover = sheet === 'TimeRequests' ? (item[10] || 'HR') : (item[12] || 'HR');
-            approvedBy = sheet === 'TimeRequests' ? (item[11] || '') : (item[13] || '');
-        } else {
-            status = item.status || item.hr_status;
-            empName = item.username;
-            reqDate = item.date;
-            reqType = '💡 ' + (item.category || 'คำขออื่นๆ');
-            targetDetail = item.title || '-';
-            reason = item.reason || '-';
-            imgUrl = item.file_url;
-            targetApprover = item.target_approver || 'HR';
-            approvedBy = item.approved_by || '';
-        }
-
-        document.getElementById('reqModalTitle').innerText = sheet === 'TimeRequests' ? '📝 พิจารณาคำขอแก้ไขเวลาทำงาน' : (sheet === 'OtherRequests' ? '💡 พิจารณาคำขออื่นๆ' : '🗓️ พิจารณาคำขอลางาน');
-        document.getElementById('reqModalEmpName').innerText = empName;
-        document.getElementById('reqModalRequestDate').innerText = reqDate;
-        document.getElementById('reqModalType').innerText = reqType;
-        document.getElementById('reqModalTargetDetail').innerText = targetDetail;
-        document.getElementById('reqModalReason').innerText = reason;
-
-        let approverEl = document.getElementById('reqModalApprover');
-        let approverContainer = document.getElementById('reqModalApproverContainer');
-        if (approverEl && approverContainer) {
-            let finalApproverName = approvedBy || targetApprover || 'HR';
-            if (availableApprovers && availableApprovers.length > 0) {
-                let appObj = availableApprovers.find(a => a.username === finalApproverName || a.realname === finalApproverName);
-                if (appObj) finalApproverName = `${appObj.realname}`;
-            }
-
-            if (status === 'Approved') {
-                approverEl.innerHTML = `<span style="color:#166534;">✅ อนุมัติโดย: <b>${finalApproverName}</b></span>`;
-                approverEl.style.background = '#dcfce7';
-                approverEl.style.borderColor = '#86efac';
-                approverContainer.style.display = 'block';
-            } else if (status === 'Rejected') {
-                approverEl.innerHTML = `<span style="color:#991b1b;">❌ ไม่อนุมัติโดย: <b>${finalApproverName}</b></span>`;
-                approverEl.style.background = '#fee2e2';
-                approverEl.style.borderColor = '#fca5a5';
-                approverContainer.style.display = 'block';
-            } else {
-                let targetApproverName = targetApprover === 'HR' ? 'HR / แอดมินกลาง' : targetApprover;
-                if (availableApprovers && availableApprovers.length > 0) {
-                    let appObj = availableApprovers.find(a => a.username === targetApprover);
-                    if (appObj) targetApproverName = `${appObj.realname}`;
-                }
-                approverEl.innerHTML = `<span style="color:#0369a1;">⏳ รอการพิจารณาอนุมัติจาก: <b>${targetApproverName}</b></span>`;
-                approverEl.style.background = '#f0f9ff';
-                approverEl.style.borderColor = '#bae6fd';
-                approverContainer.style.display = 'block';
-            }
-        }
-        document.getElementById('reqModal').classList.remove('hidden');
-    }
 
     function loadHrCalendarData() { 
         if(hrAllLogs.length === 0) { 
@@ -2793,7 +2728,7 @@
         let item = items.find(r => (Array.isArray(r) ? r[0] === reqId : r.id === reqId));
         if (!item) return;
 
-        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover;
+        let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover, approvedBy;
 
         if (Array.isArray(item)) {
             status = currentRole === 'hr' ? (sheet === 'TimeRequests' ? item[8] : item[10]) : (sheet === 'TimeRequests' ? item[7] : item[9]);
@@ -2804,6 +2739,7 @@
             reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
             imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
             targetApprover = sheet === 'TimeRequests' ? (item[10] || 'HR') : (item[12] || 'HR');
+            approvedBy = sheet === 'TimeRequests' ? (item[11] || '') : (item[13] || '');
         } else {
             status = item.status || item.hr_status;
             empName = item.username;
@@ -2813,6 +2749,7 @@
             reason = item.reason || '-';
             imgUrl = item.file_url;
             targetApprover = item.target_approver || 'HR';
+            approvedBy = item.approved_by || '';
         }
 
         document.getElementById('reqModalTitle').innerText = sheet === 'TimeRequests' ? '📝 พิจารณาคำขอแก้ไขเวลาทำงาน' : (sheet === 'OtherRequests' ? '💡 พิจารณาคำขออื่นๆ' : '🗓️ พิจารณาคำขอลางาน');
@@ -2821,6 +2758,38 @@
         document.getElementById('reqModalType').innerText = reqType;
         document.getElementById('reqModalTargetDetail').innerText = targetDetail;
         document.getElementById('reqModalReason').innerText = reason;
+
+        let approverEl = document.getElementById('reqModalApprover');
+        let approverContainer = document.getElementById('reqModalApproverContainer');
+        if (approverEl && approverContainer) {
+            let finalApproverName = approvedBy || targetApprover || 'HR';
+            if (availableApprovers && availableApprovers.length > 0) {
+                let appObj = availableApprovers.find(a => a.username === finalApproverName || a.realname === finalApproverName);
+                if (appObj) finalApproverName = `${appObj.realname}`;
+            }
+
+            if (status === 'Approved') {
+                approverEl.innerHTML = `<span style="color:#166534;">✅ อนุมัติโดย: <b>${finalApproverName}</b></span>`;
+                approverEl.style.background = '#dcfce7';
+                approverEl.style.borderColor = '#86efac';
+                approverContainer.style.display = 'block';
+            } else if (status === 'Rejected') {
+                approverEl.innerHTML = `<span style="color:#991b1b;">❌ ไม่อนุมัติโดย: <b>${finalApproverName}</b></span>`;
+                approverEl.style.background = '#fee2e2';
+                approverEl.style.borderColor = '#fca5a5';
+                approverContainer.style.display = 'block';
+            } else {
+                let targetApproverName = targetApprover === 'HR' ? 'HR / แอดมินกลาง' : targetApprover;
+                if (availableApprovers && availableApprovers.length > 0) {
+                    let appObj = availableApprovers.find(a => a.username === targetApprover);
+                    if (appObj) targetApproverName = `${appObj.realname}`;
+                }
+                approverEl.innerHTML = `<span style="color:#0369a1;">⏳ รอการพิจารณาอนุมัติจาก: <b>${targetApproverName}</b></span>`;
+                approverEl.style.background = '#f0f9ff';
+                approverEl.style.borderColor = '#bae6fd';
+                approverContainer.style.display = 'block';
+            }
+        }
 
         let targetApproverName = targetApprover === 'HR' ? '🏢 HR / แอดมินกลาง' : targetApprover;
         if (availableApprovers && availableApprovers.length > 0) {
