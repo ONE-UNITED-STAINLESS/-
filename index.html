@@ -1995,7 +1995,25 @@
     }
 
     function initGPS() { fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_locations'}) }).then(r=>r.json()).then(d => { allLocations = d.data; refreshGPS(); startCamera(); }); }
-    function startCamera() { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => { videoStream = s; document.getElementById('videoElement').srcObject = s; }).catch(err => console.log("Camera error")); } }
+    function startCamera() { 
+        if (videoStream && videoStream.active && videoStream.getVideoTracks().length > 0) {
+            let videoEl = document.getElementById('videoElement');
+            if (videoEl && (!videoEl.srcObject || videoEl.paused)) {
+                videoEl.srcObject = videoStream;
+                videoEl.play().catch(() => {});
+            }
+            return;
+        }
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { 
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(s => { 
+                videoStream = s; 
+                let videoEl = document.getElementById('videoElement');
+                if (videoEl) videoEl.srcObject = s; 
+            })
+            .catch(err => console.log("Camera error:", err)); 
+        } 
+    }
     
     function captureImageWithWatermark() {
         const v = document.getElementById('videoElement'); 
@@ -2028,10 +2046,32 @@
         return c.toDataURL('image/jpeg', 0.5).split(',')[1];
     }
 
+    let watchGpsId = null;
+
     function refreshGPS() {
-        document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--warning);">กำลังอัปเดตตำแหน่ง...</span>';
-        document.getElementById('btnIn').classList.add('hidden'); document.getElementById('btnOut').classList.add('hidden'); document.getElementById('cameraDiv').classList.add('hidden');
-        if(navigator.geolocation) { navigator.geolocation.getCurrentPosition(checkPosition, err => { document.getElementById('gpsStatus').innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; }, {enableHighAccuracy: true, maximumAge: 0, timeout: 10000}); }
+        let statusEl = document.getElementById('gpsStatus');
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--warning);">กำลังอัปเดตตำแหน่ง...</span>';
+        document.getElementById('btnIn').classList.add('hidden'); 
+        document.getElementById('btnOut').classList.add('hidden'); 
+        document.getElementById('cameraDiv').classList.add('hidden');
+        
+        if (navigator.geolocation) { 
+            navigator.geolocation.getCurrentPosition(
+                checkPosition, 
+                err => { 
+                    if (statusEl) statusEl.innerHTML = '<span style="color:var(--danger);">ไม่สามารถเข้าถึง GPS ได้</span>'; 
+                }, 
+                { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+            );
+
+            if (!watchGpsId) {
+                watchGpsId = navigator.geolocation.watchPosition(
+                    checkPosition,
+                    err => {},
+                    { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
+                );
+            }
+        }
     }
 
     // ✅ อัปเดตใหม่ ให้กดเข้า/ออกได้หลายรอบ และบังคับให้ออกงานปกติก่อนเข้า OT
