@@ -2116,6 +2116,8 @@
             // นำข้อมูลใหม่ล่าสุดขึ้นก่อน
             timeLogs.reverse().forEach(i => { 
                 let statusText = i[8] === 'Approved' ? 'อนุมัติแล้ว' : (i[8] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); 
+                let appBy = i[11] || i[10] || 'HR';
+                let appBadge = i[8] === 'Approved' ? `<br><span style="font-size:9px; color:#166534; font-weight:600;">(โดย: ${appBy})</span>` : (i[8] === 'Rejected' ? `<br><span style="font-size:9px; color:#991b1b; font-weight:600;">(โดย: ${appBy})</span>` : '');
                 let reason = i[6] ? i[6] : '-';
                 let imgUrl = isValidImageUrl(i[7]) ? i[7] : (isValidImageUrl(i[6]) ? i[6] : null);
                 if(imgUrl === i[6]) reason = i[5] ? i[5] : '-';
@@ -2125,12 +2127,14 @@
                     <td style="padding:6px 4px; font-size:11px;"><b style="color:var(--dark);">แก้ไขเวลา</b><br><span style="font-size:10px; color:#64748b;">${i[3]}</span></td>
                     <td style="padding:6px 4px; font-size:11px; line-height:1.3;"><span style="color:#1e293b; font-weight:600;">${i[4]}</span><br><span style="font-size:10px; color:#64748b;">เหตุผล: ${reason}</span><br>${imgHtml}</td>
                     <td style="padding:6px 4px; font-size:10px; color:#475569; white-space:nowrap;">${i[1].split(' ')[0]}</td>
-                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i[8]}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span></td>
+                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i[8]}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span>${appBadge}</td>
                 </tr>`; 
             });
 
             leaveLogs.reverse().forEach(i => { 
                 let statusText = i[10] === 'Approved' ? 'อนุมัติแล้ว' : (i[10] === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ'); 
+                let appBy = i[13] || i[12] || 'HR';
+                let appBadge = i[10] === 'Approved' ? `<br><span style="font-size:9px; color:#166534; font-weight:600;">(โดย: ${appBy})</span>` : (i[10] === 'Rejected' ? `<br><span style="font-size:9px; color:#991b1b; font-weight:600;">(โดย: ${appBy})</span>` : '');
                 let reason = i[7] ? i[7] : '-';
                 let imgUrl = isValidImageUrl(i[8]) ? i[8] : (isValidImageUrl(i[9]) ? i[9] : null);
                 let imgHtml = imgUrl ? `<button onclick="openImageModal('${imgUrl}')" style="cursor:pointer; border:none; background:#eef2f6; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:9px; color:var(--dark); font-weight:600; display:inline-block; margin-top:3px;">🖼️ ดูรูป/เอกสาร</button>` : '';
@@ -2139,12 +2143,14 @@
                     <td style="padding:6px 4px; font-size:11px;"><b style="color:var(--dark);">ลางาน</b><br><span style="font-size:10px; color:#64748b;">${i[3]}</span></td>
                     <td style="padding:6px 4px; font-size:11px; line-height:1.3;"><span style="color:#1e293b; font-weight:600;">${i[4]} ถึง ${i[5]}</span><br><span style="font-size:10px; color:#64748b;">เหตุผล: ${reason}</span><br>${imgHtml}</td>
                     <td style="padding:6px 4px; font-size:10px; color:#475569; white-space:nowrap;">${i[1].split(' ')[0]}</td>
-                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i[10]}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span></td>
+                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i[10]}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span>${appBadge}</td>
                 </tr>`; 
             });
 
             otherLogs.reverse().forEach(i => {
                 let statusText = i.hr_status === 'Approved' ? 'อนุมัติแล้ว' : (i.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
+                let appBy = i.approved_by || i.target_approver || 'HR';
+                let appBadge = i.hr_status === 'Approved' ? `<br><span style="font-size:9px; color:#166534; font-weight:600;">(โดย: ${appBy})</span>` : (i.hr_status === 'Rejected' ? `<br><span style="font-size:9px; color:#991b1b; font-weight:600;">(โดย: ${appBy})</span>` : '');
                 let imgUrl = isValidImageUrl(i.file_url) ? i.file_url : null;
                 let imgHtml = imgUrl ? `<button onclick="openImageModal('${imgUrl}')" style="cursor:pointer; border:none; background:#eef2f6; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:9px; color:var(--dark); font-weight:600; display:inline-block; margin-top:3px;">🖼️ ดูรูป/เอกสาร</button>` : '';
 
@@ -2152,7 +2158,7 @@
                     <td style="padding:6px 4px; font-size:11px;"><b style="color:#0284c7;">💡 อื่นๆ</b><br><span style="font-size:10px; color:#64748b;">${i.category || 'คำขออื่นๆ'}</span></td>
                     <td style="padding:6px 4px; font-size:11px; line-height:1.3;"><span style="color:#1e293b; font-weight:600;">${i.title}</span><br><span style="font-size:10px; color:#64748b;">รายละเอียด: ${i.reason}</span><br>${imgHtml}</td>
                     <td style="padding:6px 4px; font-size:10px; color:#475569; white-space:nowrap;">${(i.date || '').split(' ')[0]}</td>
-                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i.hr_status}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span></td>
+                    <td style="padding:6px 4px; text-align:center;"><span class="status-${i.hr_status}" style="font-size:10px; padding:2px 6px; border-radius:10px; display:inline-block;">${statusText}</span>${appBadge}</td>
                 </tr>`;
             });
         });
@@ -2866,21 +2872,24 @@
     }
 
     function approveReq(s, id, st) { 
-        if(!confirm(`ยืนยันการให้สถานะ ${st}?`)) return; 
+        let actionName = st === 'Approved' ? 'อนุมัติ' : 'ไม่อนุมัติ';
+        if(!confirm(`ยืนยันการให้สถานะ "${actionName}" คำขอนี้?`)) return; 
         fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole, username: currentUser}) })
         .then(r => r.json())
         .then(res => { 
-            if (res.status === 'error') {
+            if (res && res.status === 'error') {
                 alert(res.message || "ท่านไม่มีสิทธิ์อนุมัติรายการนี้");
             } else {
                 closeRequestDetailModal();
-                loadRequests(); 
-                loadDashboard(); 
-                refreshInitData();
+                alert(`✅ บันทึกการ"${actionName}"คำขอเรียบร้อยแล้ว`);
+                try { if (typeof loadRequests === 'function') loadRequests(); } catch(e){}
+                try { if (typeof loadDashboard === 'function') loadDashboard(); } catch(e){}
+                try { if (typeof refreshInitData === 'function') refreshInitData(); } catch(e){}
             }
         })
         .catch(err => {
-            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+            console.error("approveReq error:", err);
+            alert("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
         }); 
     }
     
@@ -4041,16 +4050,19 @@
             myReqs.time.forEach(r => {
                 let statusStr = r.hr_status === 'Approved' ? 'อนุมัติเรียบร้อย' : (r.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอพิจารณา');
                 let icon = r.hr_status === 'Approved' ? '✅' : (r.hr_status === 'Rejected' ? '❌' : '⏳');
+                let appName = r.approved_by || r.target_approver || 'HR';
+                let appStr = r.hr_status === 'Approved' ? ` (โดย: ${appName})` : (r.hr_status === 'Rejected' ? ` (โดย: ${appName})` : ` (ส่งถึง: ${appName})`);
                 list.push({
                     id: 'time_' + r.id + '_' + r.hr_status,
                     rawId: r.id,
                     type: 'time',
                     icon: icon,
-                    title: `คำขอแก้ไขเวลา (${r.edit_type}): ${statusStr}`,
-                    content: `วันที่เป้าหมาย: ${r.target_datetime} | เหตุผล: ${r.reason}`,
+                    title: `คำขอแก้ไขเวลา (${r.edit_type}): ${statusStr}${appStr}`,
+                    content: `วันที่เป้าหมาย: ${r.target_datetime} | เหตุผล: ${r.reason} | ผู้อนุมัติ/ผู้พิจารณา: ${appName}`,
                     date: r.date,
                     status: r.hr_status,
-                    image_url: r.file_url
+                    image_url: r.file_url,
+                    approved_by: appName
                 });
             });
         }
@@ -4059,16 +4071,19 @@
             myReqs.leave.forEach(r => {
                 let statusStr = r.hr_status === 'Approved' ? 'อนุมัติเรียบร้อย' : (r.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอพิจารณา');
                 let icon = r.hr_status === 'Approved' ? '✅' : (r.hr_status === 'Rejected' ? '❌' : '⏳');
+                let appName = r.approved_by || r.target_approver || 'HR';
+                let appStr = r.hr_status === 'Approved' ? ` (โดย: ${appName})` : (r.hr_status === 'Rejected' ? ` (โดย: ${appName})` : ` (ส่งถึง: ${appName})`);
                 list.push({
                     id: 'leave_' + r.id + '_' + r.hr_status,
                     rawId: r.id,
                     type: 'leave',
                     icon: icon,
-                    title: `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}`,
-                    content: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`,
+                    title: `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}${appStr}`,
+                    content: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason} | ผู้อนุมัติ/ผู้พิจารณา: ${appName}`,
                     date: r.date,
                     status: r.hr_status,
-                    image_url: r.file_url
+                    image_url: r.file_url,
+                    approved_by: appName
                 });
             });
         }
@@ -4077,16 +4092,19 @@
             myReqs.other.forEach(r => {
                 let statusStr = r.hr_status === 'Approved' ? 'อนุมัติเรียบร้อย' : (r.hr_status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอพิจารณา');
                 let icon = r.hr_status === 'Approved' ? '✅' : (r.hr_status === 'Rejected' ? '❌' : '⏳');
+                let appName = r.approved_by || r.target_approver || 'HR';
+                let appStr = r.hr_status === 'Approved' ? ` (โดย: ${appName})` : (r.hr_status === 'Rejected' ? ` (โดย: ${appName})` : ` (ส่งถึง: ${appName})`);
                 list.push({
                     id: 'other_' + r.id + '_' + r.hr_status,
                     rawId: r.id,
                     type: 'other',
                     icon: icon,
-                    title: `คำขออื่นๆ (${r.category}): ${statusStr}`,
-                    content: `เรื่อง: ${r.title} | รายละเอียด: ${r.reason}`,
+                    title: `คำขออื่นๆ (${r.category}): ${statusStr}${appStr}`,
+                    content: `เรื่อง: ${r.title} | รายละเอียด: ${r.reason} | ผู้อนุมัติ/ผู้พิจารณา: ${appName}`,
                     date: r.date,
                     status: r.hr_status,
-                    image_url: r.file_url
+                    image_url: r.file_url,
+                    approved_by: appName
                 });
             });
         }
