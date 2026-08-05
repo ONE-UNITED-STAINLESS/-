@@ -6,7 +6,14 @@
     <title>ระบบเช็กอินเข้า-ออกงาน - ONE UNITED STAINLESS</title>
     <link rel="icon" type="image/png" href="one123.png?v=2">
     <link rel="shortcut icon" type="image/png" href="one123.png?v=2">
-    <link rel="apple-touch-icon" href="one123.png?v=2">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/appointment-reminders.png">
+
+    <!-- PWA Add to Home Screen Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Check-in App">
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -474,6 +481,27 @@
     <p style="color: var(--gray); font-size: 14px;">โปรดรอสักครู่</p>
 </div>
 
+<!-- Modal คำแนะนำติดตั้งบน iOS (iPhone / iPad) -->
+<div id="iosInstallModal" class="hidden" onclick="if(event.target === this) closeIosInstallModal();" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 35000; display: flex; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; border-radius: 20px; max-width: 420px; width: 100%; padding: 24px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); animation: scaleUp 0.3s ease;">
+        <div style="font-size: 36px; margin-bottom: 8px;">📲</div>
+        <h3 style="margin: 0 0 8px 0; font-size: 17px; color: var(--dark); font-weight: 700;">วิธีเพิ่มแอปลงหน้าจอ iPhone / iPad</h3>
+        <p style="font-size: 12px; color: #475569; margin-bottom: 16px;">ทำตาม 2 ขั้นตอนง่ายๆ เพื่อเพิ่มไอคอนแอปลงหน้าจอมือถือ:</p>
+        
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: left; font-size: 13px; color: #0369a1;">
+            <b>1. กดปุ่มแชร์ <span style="font-size:16px;">⎋</span> (Share)</b><br>
+            <span style="font-size:11px; color:#64748b;">(ปุ่มตรงกลางด้านล่างสุดของหน้าต่าง Safari)</span>
+        </div>
+
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 13px; color: #0369a1;">
+            <b>2. เลื่อนลงแล้วเลือก <span style="font-size:15px;">➕ "เพิ่มไปยังหน้าจอโฮม"</span></b><br>
+            <span style="font-size:11px; color:#64748b;">(Add to Home Screen) แล้วกด "เพิ่ม" (Add)</span>
+        </div>
+
+        <button onclick="closeIosInstallModal()" class="btn-primary" style="width: 100%; padding: 10px; font-weight: 700;">เข้าใจแล้ว</button>
+    </div>
+</div>
+
 <div class="container">
     <div class="box login-box" id="loginSec">
         <div style="text-align: center; margin-bottom: 25px;">
@@ -486,6 +514,14 @@
         <input type="password" id="pass" placeholder="รหัสผ่าน (Password)">
         <button class="btn-primary" onclick="login()">เข้าสู่ระบบ</button>
         <p id="loginMsg" style="color:var(--danger); font-weight:500; margin-top:15px;"></p>
+
+        <!-- PWA Install Banner inside Login Sec -->
+        <div id="pwaInstallBox" style="margin-top:20px; background:linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius:14px; padding:14px; color:white; text-align:center; box-shadow:0 8px 16px rgba(2, 132, 199, 0.25);">
+            <div style="font-size:24px; margin-bottom:4px;">📱</div>
+            <h4 style="margin:0 0 4px 0; font-size:14px; font-weight:700;">เพิ่มแอปเข้าหน้าจอมือถือ</h4>
+            <p style="margin:0 0 10px 0; font-size:11px; opacity:0.9; line-height:1.4;">กดปุ่มนี้เพื่อเพิ่มไอคอนแอปบนหน้าจอมือถือ เข้าใช้งานได้สะดวกทันทีไม่ต้องพิมพ์ลิงก์!</p>
+            <button onclick="triggerPwaInstall()" style="background:#ffffff; color:#0284c7; border:none; padding:10px 16px; border-radius:20px; font-size:13px; font-weight:700; cursor:pointer; width:100%; box-shadow:0 4px 8px rgba(0,0,0,0.15);">📲 กดติดตั้งแอปบนหน้าจอมือถือ</button>
+        </div>
     </div>
 
     <div class="box hidden" id="empSec">
@@ -1653,6 +1689,47 @@
 
         loadDashboard();
         loadRequests();
+    }
+
+    // =========================================================
+    // PWA & Add to Home Screen (A2HS) Logic
+    // =========================================================
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        let btn = document.getElementById('pwaInstallBox');
+        if (btn) btn.classList.remove('hidden');
+    });
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW reg error:', err));
+        });
+    }
+
+    function triggerPwaInstall() {
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+            let modal = document.getElementById('iosInstallModal');
+            if (modal) modal.classList.remove('hidden');
+        } else if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted PWA install');
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            alert("📲 วิธีติดตั้งลงหน้าจอมือถือ (Android):\n1. กดปุ่มเมนู 3 จุด (⋮) มุมขวาบนของเบราว์เซอร์ Chrome\n2. เลือก 'เพิ่มลงในหน้าจอหลัก' (Add to Home screen)\n3. กด 'เพิ่ม' ไอคอนแอปจะไปอยู่ที่หน้าจอมือถือทันที!");
+        }
+    }
+
+    function closeIosInstallModal() {
+        let modal = document.getElementById('iosInstallModal');
+        if (modal) modal.classList.add('hidden');
     }
 
     // ✅ อัปเดตระบบโหลด: โหลดจาก Cache ทันที + ดึงข้อมูลใหม่คู่ขนานกัน (พื้นหลัง)
