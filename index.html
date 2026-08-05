@@ -2874,7 +2874,18 @@
     function approveReq(s, id, st) { 
         let actionName = st === 'Approved' ? 'อนุมัติ' : 'ไม่อนุมัติ';
         if(!confirm(`ยืนยันการให้สถานะ "${actionName}" คำขอนี้?`)) return; 
-        fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'update_request', sheet_name: s, req_id: id, new_status: st, role: currentRole, username: currentUser}) })
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: new URLSearchParams({
+                action: 'update_request', 
+                sheet_name: s, 
+                req_id: id, 
+                new_status: st, 
+                role: currentRole, 
+                username: currentUser,
+                realname: currentRealName
+            }) 
+        })
         .then(r => r.json())
         .then(res => { 
             if (res && res.status === 'error') {
