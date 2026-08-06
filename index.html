@@ -2074,7 +2074,7 @@
         }
     }
 
-    // ✅ อัปเดตใหม่ ให้กดเข้า/ออกได้หลายรอบ และบังคับให้ออกงานปกติก่อนเข้า OT
+    // ✅ กำหนดเงื่อนไข: ก่อนกดเข้า OT ต้องกดออกงานปกติก่อน (หากค้างเข้างานปกติไว้)
     function updateCheckInButtons() {
         let now = new Date();
         let currentHour = now.getHours();
@@ -2084,8 +2084,8 @@
         
         let btnIn = document.getElementById('btnIn');
         let btnOut = document.getElementById('btnOut');
+        if (!btnIn || !btnOut) return;
         
-        // ปลดล็อกให้กดปุ่มได้เสมอ
         btnIn.style.opacity = "1"; 
         btnOut.style.opacity = "1";
         btnIn.disabled = false;
@@ -2098,30 +2098,33 @@
 
         let isCurrentlyInNormal = (latestStatus === 'เข้างาน');
         
-        // กรณีเพิ่งกด "เข้างาน" ปกติทิ้งไว้ แต่ลากยาวจนเข้าช่วง OT -> บังคับให้ออกงานก่อนเท่านั้น
-        if (isCurrentlyInNormal && isOTTime) {
-            btnIn.innerText = "▶️ เข้างาน (OT)";
-            btnIn.style.opacity = "0.5"; 
-            btnIn.onclick = () => alert("⚠️ กรุณากด 'ออกงาน' ตามปกติให้เรียบร้อยก่อนครับ จึงจะเข้า OT ได้");
-            
-            btnOut.innerText = "⏹️ ออกงาน";
-            btnOut.onclick = () => checkIn('ออกงาน'); 
-        } 
-        else {
-            // ปลดล็อกให้กด เข้า/ออก ได้อิสระตลอดเวลา (เปลี่ยนแค่ชื่อตามช่วงเวลา)
-            if (isOTTime) {
+        if (isOTTime) {
+            if (isCurrentlyInNormal) {
+                // หากยังค้างสถานะ "เข้างาน" ปกติอยู่ -> บังคับให้ออกงานปกติก่อนกดเข้า OT
                 btnIn.innerText = "▶️ เข้างาน (OT)";
+                btnIn.style.opacity = "0.6";
+                btnIn.onclick = () => alert("⚠️ กรุณากด 'ออกงาน' (งานปกติ) ให้เรียบร้อยก่อนครับ จึงจะกดเข้างาน OT ได้");
+                
+                btnOut.innerText = "⏹️ ออกงาน (ปกติ)";
+                btnOut.style.opacity = "1";
+                btnOut.onclick = () => checkIn('ออกงาน');
+            } else {
+                // ออกงานปกติเรียบร้อยแล้ว -> สามารถกด เข้า/ออก OT ได้อย่างอิสระ
+                btnIn.innerText = "▶️ เข้างาน (OT)";
+                btnIn.style.opacity = "1";
                 btnIn.onclick = () => checkIn('เข้างาน(OT)');
                 
                 btnOut.innerText = "⏹️ ออกงาน (OT)";
+                btnOut.style.opacity = "1";
                 btnOut.onclick = () => checkIn('ออกงาน(OT)');
-            } else {
-                btnIn.innerText = "▶️ เข้างาน";
-                btnIn.onclick = () => checkIn('เข้างาน');
-                
-                btnOut.innerText = "⏹️ ออกงาน";
-                btnOut.onclick = () => checkIn('ออกงาน');
             }
+        } else {
+            // ช่วงเวลาปกติ (05:00 - 16:59)
+            btnIn.innerText = "▶️ เข้างาน";
+            btnIn.onclick = () => checkIn('เข้างาน');
+            
+            btnOut.innerText = "⏹️ ออกงาน";
+            btnOut.onclick = () => checkIn('ออกงาน');
         }
     }
 
