@@ -1657,6 +1657,11 @@
         if (d.hr_notifications) {
             processHrNotifications(d.hr_notifications);
         }
+        if (d.logs && Array.isArray(d.logs)) {
+            currentLogs = d.logs;
+            renderMyLogList();
+            updateCheckInButtons();
+        }
         if (d.dashboard) {
             renderDashboard(d.dashboard);
         }
@@ -1676,6 +1681,7 @@
 
         if (!videoStream) startCamera();
         refreshGPS();
+        loadMyLogs();
         switchEmpTab('checkin');
     }
 
@@ -1788,11 +1794,16 @@
                     document.getElementById('addUserDiv').classList.add('hidden'); 
                 }
                 
-                fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole}) })
+                fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'init_app', role: currentRole, username: currentUser}) })
                 .then(r=>r.json()).then(d => {
                     if(d.status === 'success') {
                         applyInitData(d);
                         renderDashboard(d.dashboard);
+                        if(d.logs) {
+                            currentLogs = d.logs;
+                            renderMyLogList();
+                            updateCheckInButtons();
+                        }
                         let sel = document.getElementById('hrCalUserSelect'); 
                         sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>'; 
                         if(d.users) d.users.forEach(u => { 
@@ -2094,9 +2105,25 @@
         let latestStatus = '';
         if (currentLogs && currentLogs.length > 0) {
             latestStatus = currentLogs[0][2] || ''; 
+        } else if (currentUser) {
+            // หากยังไม่มีประวัติในหน่วยความจำ ให้ดึงประวัติล่าสุดทันทีเพื่ออัปเดตปุ่มกดให้ถูกต้อง
+            if (!window.isFetchingMyLogs) {
+                window.isFetchingMyLogs = true;
+                fetch(scriptURL, { method: 'POST', body: new URLSearchParams({action: 'get_my_logs', username: currentUser}) })
+                .then(r => r.json())
+                .then(d => {
+                    window.isFetchingMyLogs = false;
+                    if (d && d.data && d.data.length > 0) {
+                        currentLogs = d.data;
+                        updateCheckInButtons();
+                    }
+                }).catch(() => { window.isFetchingMyLogs = false; });
+            }
         }
 
-        let isCurrentlyInNormal = (latestStatus === 'เข้างาน');
+        // เช็คว่าสถานะล่าสุดเป็นการ "เข้างาน" ปกติหรือไม่
+        let isCurrentlyInNormal = (latestStatus === 'เข้างาน' || (latestStatus.startsWith('เข้างาน') && latestStatus !== 'เข้างาน(OT)'));
+        let isCurrentlyInOT = (latestStatus === 'เข้างาน(OT)');
         
         if (isOTTime) {
             if (isCurrentlyInNormal) {
@@ -2108,6 +2135,14 @@
                 btnOut.innerText = "⏹️ ออกงาน (ปกติ)";
                 btnOut.style.opacity = "1";
                 btnOut.onclick = () => checkIn('ออกงาน');
+            } else if (isCurrentlyInOT) {
+                btnIn.innerText = "▶️ เข้างาน (OT)";
+                btnIn.style.opacity = "0.6";
+                btnIn.onclick = () => alert("⚠️ คุณกดเข้างาน (OT) เรียบร้อยแล้วครับ");
+
+                btnOut.innerText = "⏹️ ออกงาน (OT)";
+                btnOut.style.opacity = "1";
+                btnOut.onclick = () => checkIn('ออกงาน(OT)');
             } else {
                 // ออกงานปกติเรียบร้อยแล้ว -> สามารถกด เข้า/ออก OT ได้อย่างอิสระ
                 btnIn.innerText = "▶️ เข้างาน (OT)";
