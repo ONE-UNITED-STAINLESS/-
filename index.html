@@ -2106,7 +2106,16 @@
 
         let latestStatus = '';
         if (currentLogs && currentLogs.length > 0) {
-            latestStatus = currentLogs[0][2] || ''; 
+            // ดึงรายการลงเวลาสแกนจริงล่าสุด (เข้างาน/ออกงาน) ข้ามรายการลางานในอนาคต
+            let latestCheckinLog = currentLogs.find(l => {
+                let st = l[2] || '';
+                return st.includes('เข้างาน') || st.includes('ออกงาน');
+            });
+            if (latestCheckinLog) {
+                latestStatus = latestCheckinLog[2] || '';
+            } else {
+                latestStatus = currentLogs[0][2] || '';
+            }
         } else if (currentUser) {
             // หากยังไม่มีประวัติในหน่วยความจำ ให้ดึงประวัติล่าสุดทันทีเพื่ออัปเดตปุ่มกดให้ถูกต้อง
             if (!window.isFetchingMyLogs) {
