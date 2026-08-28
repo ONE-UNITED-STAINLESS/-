@@ -3237,6 +3237,8 @@
                 closeRequestDetailModal();
                 if (typeof loadRequests === 'function') loadRequests();
                 if (typeof loadMyRequests === 'function') loadMyRequests();
+                if (typeof loadMyLogs === 'function') loadMyLogs();
+                if (typeof loadHrDashboardData === 'function') loadHrDashboardData();
                 if (typeof refreshInitData === 'function') refreshInitData();
             } else {
                 alert("❌ ไม่สามารถลบคำขอได้: " + (d.message || 'เกิดข้อผิดพลาด'));
