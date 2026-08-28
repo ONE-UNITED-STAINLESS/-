@@ -2870,10 +2870,8 @@
 
             let statusColor = isLate ? 'var(--warning)' : (status.includes('เข้า') ? 'var(--success)' : (status.includes('ลา') ? 'var(--purple)' : 'var(--danger)'));
 
-            let imgHtml = '-';
-            if (isValidImageUrl(imgUrl)) {
-                imgHtml = `<button onclick="openImageModal('${imgUrl}')" style="cursor:pointer; border:none; background:#eef2f6; border:1px solid #d1d5db; padding:4px 10px; border-radius:6px; font-size:11px; color:var(--dark); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.05);">🖼️ ดูรูป</button>`;
-            }
+            let rawUsername = log[8] || empName;
+            let delLogBtn = (currentRole === 'hr') ? `<button onclick="deleteCheckinLog('${datetime}', '${rawUsername}', '${status}')" style="cursor:pointer; border:none; background:#fee2e2; border:1px solid #fca5a5; padding:4px 8px; border-radius:6px; font-size:11px; color:#991b1b; font-weight:600; margin-left:4px;" title="ลบรายการนี้">🗑️</button>` : '';
 
             tb.innerHTML += `
                 <tr>
@@ -2881,7 +2879,7 @@
                     <td style="font-size:13px; font-weight:500; color:var(--primary);">${empName}</td>
                     <td style="color:${statusColor}; font-weight:600; font-size:13px;">${displayStatus}</td>
                     <td style="font-size:12px;">${loc}</td>
-                    <td>${imgHtml}</td>
+                    <td style="white-space:nowrap;">${imgHtml}${delLogBtn}</td>
                 </tr>
             `;
         });
@@ -3246,6 +3244,38 @@
         })
         .catch(err => {
             console.error("deleteCurrentRequest error:", err);
+            alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+        });
+    }
+
+    function deleteCheckinLog(datetime, rawUsername, status) {
+        if (currentRole !== 'hr') return alert("เฉพาะ HR / Admin เท่านั้นที่สามารถลบประวัติการลงเวลาได้");
+        if (!confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการ "ลบประวัติการลงเวลานี้" ออกจากระบบ?\n\nพนักงาน: ${rawUsername}\nวันที่/เวลา: ${datetime}\nสถานะ: ${status}`)) {
+            return;
+        }
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: new URLSearchParams({
+                action: 'delete_checkin_log',
+                datetime: datetime,
+                username: rawUsername,
+                status: status,
+                role: currentRole
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d && d.status === 'success') {
+                alert("✅ ลบประวัติการลงเวลาเรียบร้อยแล้ว");
+                if (typeof loadHrDashboardData === 'function') loadHrDashboardData();
+                if (typeof loadMyLogs === 'function') loadMyLogs();
+            } else {
+                alert("❌ ไม่สามารถลบได้: " + (d.message || 'เกิดข้อผิดพลาด'));
+            }
+        })
+        .catch(err => {
+            console.error("deleteCheckinLog error:", err);
             alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
         });
     }
