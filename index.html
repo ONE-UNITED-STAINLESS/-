@@ -416,8 +416,9 @@
                     </select>
                 </div>
 
-                <div style="display:flex; gap:10px;">
-                    <button onclick="saveEditedRequest()" class="btn-primary" style="flex:1; padding:8px; font-size:13px; font-weight:600;">💾 บันทึกการแก้ไข</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="saveEditedRequest()" class="btn-primary" style="flex:1; min-width:120px; padding:8px; font-size:13px; font-weight:600;">💾 บันทึกการแก้ไข</button>
+                    <button onclick="deleteCurrentRequest()" class="btn-red" style="padding:8px 16px; font-size:13px; background:#dc2626; color:white; font-weight:600; border:none; border-radius:8px; cursor:pointer;">🗑️ ลบคำขอ</button>
                     <button onclick="cancelEditRequestModal()" class="btn-grey" style="padding:8px 16px; font-size:13px;">✕ ยกเลิก</button>
                 </div>
             </div>
@@ -3039,6 +3040,7 @@
 
     let currentDetailReqItem = null;
     let currentDetailSheet = '';
+    let currentDetailReqId = '';
 
     function openRequestDetailModal(sheet, reqId) {
         let items = sheet === 'TimeRequests' ? (hrRawRequests.time || []) : ((sheet === 'LeaveRequests' || sheet === 'Leaves') ? (hrRawRequests.leave || []) : (hrNotificationsData.other || []));
@@ -3047,6 +3049,7 @@
 
         currentDetailReqItem = item;
         currentDetailSheet = sheet;
+        currentDetailReqId = reqId;
         cancelEditRequestModal();
 
         let status, empName, reqDate, reqType, targetDetail, reason, imgUrl, targetApprover, approvedBy;
@@ -3151,8 +3154,14 @@
             imgContainer.classList.add('hidden');
         }
 
+        let isCreatorOrHrOrApprover = (currentRole === 'hr' || canApproveThis || (currentDetailReqItem && (currentDetailReqItem.username === currentUser || (Array.isArray(currentDetailReqItem) && (currentDetailReqItem[2] === currentUser || currentDetailReqItem[9] === currentUser)))));
+
         let editBtnHtml = (currentRole === 'hr') ? `
             <button class="btn-yellow" onclick="openEditRequestModal()" style="padding: 10px 14px; font-size: 14px; font-weight: 600;">✏️ แก้ไขคำขอ</button>
+        ` : '';
+
+        let deleteBtnHtml = (isCreatorOrHrOrApprover) ? `
+            <button class="btn-red" onclick="deleteCurrentRequest()" style="padding: 10px 14px; font-size: 14px; font-weight: 600; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🗑️ ลบคำขอ</button>
         ` : '';
 
         let actionBtns = document.getElementById('reqModalActionButtons');
@@ -3164,6 +3173,7 @@
                     </div>
                     <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap;">
                         ${editBtnHtml}
+                        ${deleteBtnHtml}
                         <button class="btn-green" onclick="approveReq('${sheet}', '${reqId}', 'Approved')" style="flex: 1; min-width:110px; padding: 12px; font-size: 15px; font-weight: 600;">✅ อนุมัติ</button>
                         <button class="btn-red" onclick="approveReq('${sheet}', '${reqId}', 'Rejected')" style="flex: 1; min-width:110px; padding: 12px; font-size: 15px; font-weight: 600;">❌ ปฏิเสธ</button>
                     </div>
@@ -3174,24 +3184,68 @@
                         🔒 <b>คำขอนี้ระบุส่งถึง "${targetApproverName}" เพื่อพิจารณาอนุมัติเท่านั้น</b><br>
                         (HR / แอดมิน ดูข้อมูลได้เท่านั้น ไม่สามารถกดอนุมัติแทนผู้มีสิทธิ์ที่ระบุได้)
                     </div>
-                    <div style="display:flex; gap:10px; width:100%;">
+                    <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap;">
                         ${editBtnHtml}
-                        <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; padding:10px;">ปิดหน้าต่าง</button>
+                        ${deleteBtnHtml}
+                        <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; min-width:120px; padding:10px;">ปิดหน้าต่าง</button>
                     </div>
                 `;
             }
             actionBtns.classList.remove('hidden');
         } else {
             actionBtns.innerHTML = `
-                <div style="display:flex; gap:10px; width:100%;">
+                <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap;">
                     ${editBtnHtml}
-                    <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; padding:10px;">ปิดหน้าต่าง (พิจารณาแล้ว)</button>
+                    ${deleteBtnHtml}
+                    <button class="btn-grey" onclick="closeRequestDetailModal()" style="flex:1; min-width:140px; padding:10px;">ปิดหน้าต่าง (พิจารณาแล้ว)</button>
                 </div>
             `;
         }
 
         let modal = document.getElementById('requestDetailModal');
         if (modal) modal.classList.remove('hidden');
+    }
+
+    function deleteCurrentRequest() {
+        if (!currentDetailReqId || !currentDetailSheet) {
+            alert("❌ ไม่พบลำดับรหัสคำขอที่ต้องการลบ");
+            return;
+        }
+        
+        let sheet = currentDetailSheet;
+        let reqId = currentDetailReqId;
+        let empName = document.getElementById('reqModalEmpName') ? document.getElementById('reqModalEmpName').innerText : '';
+
+        if (!confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการ "ลบคำขอนี้" ออกจากระบบ?\n(พนักงาน: ${empName})\n\nคำขอที่ลบแล้ว ข้อมูลจะถูกลบออกจากระบบอย่างถาวร`)) {
+            return;
+        }
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: new URLSearchParams({
+                action: 'delete_request',
+                sheet_name: sheet,
+                req_id: reqId,
+                role: currentRole,
+                username: currentUser
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d && d.status === 'success') {
+                alert("✅ ลบคำขอเรียบร้อยแล้ว");
+                closeRequestDetailModal();
+                if (typeof loadRequests === 'function') loadRequests();
+                if (typeof loadMyRequests === 'function') loadMyRequests();
+                if (typeof refreshInitData === 'function') refreshInitData();
+            } else {
+                alert("❌ ไม่สามารถลบคำขอได้: " + (d.message || 'เกิดข้อผิดพลาด'));
+            }
+        })
+        .catch(err => {
+            console.error("deleteCurrentRequest error:", err);
+            alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+        });
     }
 
     function openEditRequestModal() {
