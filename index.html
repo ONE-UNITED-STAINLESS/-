@@ -685,7 +685,10 @@
                     <label style="font-size:12px; font-weight:600; color:#b45309;">👤 ส่งถึงผู้มีอำนาจอนุมัติคำขอ:</label>
                     <select id="timeTargetApprover" style="margin-top:2px; background:white; font-size:13px;"></select>
                 </div>
-                <textarea id="timeReason" rows="2" placeholder="ระบุเหตุผล..."></textarea><input type="file" id="timeFile" accept="image/*" style="padding: 8px;">
+                <textarea id="timeReason" rows="2" placeholder="ระบุเหตุผล..."></textarea>
+                <label style="font-size:11px; color:#92400e; font-weight:600; display:block; margin-top:4px;">📎 แนบรูปถ่าย/หลักฐาน (เลือกได้หลายไฟล์พร้อมกัน):</label>
+                <input type="file" id="timeFile" accept="image/*" multiple onchange="handleMultipleFileSelect('time')" style="padding: 8px;">
+                <div id="timeFilePreview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
                 <button class="btn-yellow" onclick="submitRequest('time')" style="width: 100%; margin-top: 10px;">ส่งคำขอแก้ไข</button>
             </div>
             
@@ -704,7 +707,10 @@
                     <label style="font-size:12px; font-weight:600; color:#374151;">👤 ส่งถึงผู้มีอำนาจอนุมัติคำขอ:</label>
                     <select id="leaveTargetApprover" style="margin-top:2px; background:white; font-size:13px;"></select>
                 </div>
-                <textarea id="leaveReason" rows="2" placeholder="ระบุเหตุผลการลาอย่างละเอียด..."></textarea><input type="file" id="leaveFile" accept="image/*,application/pdf" style="padding: 8px;">
+                <textarea id="leaveReason" rows="2" placeholder="ระบุเหตุผลการลาอย่างละเอียด..."></textarea>
+                <label style="font-size:11px; color:#475569; font-weight:600; display:block; margin-top:4px;">📎 แนบรูปถ่าย/ใบรับรองแพทย์/หลักฐาน (เลือกได้หลายไฟล์พร้อมกัน):</label>
+                <input type="file" id="leaveFile" accept="image/*,application/pdf" multiple onchange="handleMultipleFileSelect('leave')" style="padding: 8px;">
+                <div id="leaveFilePreview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
                 <button class="btn-primary" onclick="submitRequest('leave')" style="width: 100%; margin-top: 10px;">ส่งคำขอลา</button>
             </div>
 
@@ -722,7 +728,9 @@
                     <select id="otherTargetApprover" style="margin-top:2px; background:white; font-size:13px;"></select>
                 </div>
                 <textarea id="otherReason" rows="3" placeholder="ระบุเหตุผลหรือรายละเอียดคำขออย่างชัดเจน..."></textarea>
-                <input type="file" id="otherFile" accept="image/*,application/pdf" style="padding: 8px;">
+                <label style="font-size:11px; color:#0369a1; font-weight:600; display:block; margin-top:4px;">📎 แนบรูปถ่าย/เอกสาร/บิลเบิกเงิน (เลือกได้หลายไฟล์พร้อมกัน):</label>
+                <input type="file" id="otherFile" accept="image/*,application/pdf" multiple onchange="handleMultipleFileSelect('other')" style="padding: 8px;">
+                <div id="otherFilePreview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
                 <button class="btn-primary" onclick="submitRequest('other')" style="width: 100%; margin-top: 10px; background: #0284c7;">ส่งคำขออื่นๆ</button>
             </div>
             <p id="reqMsg" class="text-center mt-3" style="color:var(--success); font-weight:600;"></p>
