@@ -534,7 +534,6 @@
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockEmp" class="header-clock" style="margin-right: 4px;">00:00:00</div>
                 <button id="btnSwitchToHrMode" class="btn-primary hidden" onclick="switchToHrView()" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #4361ee, #3b82f6); border: none; box-shadow: 0 2px 4px rgba(67,97,238,0.3);">📊 หน้าผู้ดูแล (HR/Supervisor)</button>
-                <button class="btn-outline" id="btnPushNotifHeader" onclick="initWebPushSubscription()" style="padding: 6px 12px; font-size: 13px; border-color: #f59e0b; color: #b45309; background: #fffbeb; font-weight:600;" title="เปิดรับการแจ้งเตือนบนแถบมือถือและคอมพิวเตอร์">🔔 รับแจ้งเตือนบนแถบมือถือ/คอม</button>
                 <button class="btn-outline" onclick="openEmpNotifModal()" style="padding: 6px 12px; font-size: 13px; position: relative; display: inline-flex; align-items: center; gap: 4px; border-color: #6366f1; color: #4338ca; background: #eef2ff;">
                     🔔 แจ้งเตือน <span id="empNotifBadge" class="hidden" style="background:#ef4444; color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:2px; line-height:1.2; box-shadow:0 2px 4px rgba(239,68,68,0.4);">0</span>
                 </button>
@@ -1207,6 +1206,19 @@
             </h3>
             <button onclick="closeEmpNotifModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">✕</button>
         </div>
+        <div id="pushNotifBannerBox" style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1px solid #fde68a; padding: 12px 14px; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 2px 4px rgba(245,158,11,0.15);">
+            <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 6px;">
+                    🔔 แจ้งเตือนบนแถบมือถือ & คอมพิวเตอร์
+                </div>
+                <div style="font-size: 11px; color: #92400e; margin-top: 2px; line-height: 1.3;">
+                    รับแจ้งเตือนทันทีบนแถบโทรศัพท์หรือหน้าจอคอม เมื่อมีคนยื่นลาหรือคำขออนุมัติ
+                </div>
+            </div>
+            <button id="btnPushNotifModal" onclick="initWebPushSubscription()" style="background: #f59e0b; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(245,158,11,0.3); display: inline-flex; align-items: center; gap: 4px;">
+                🔔 เปิดใช้งาน
+            </button>
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; font-size: 12px;">
             <span style="color:var(--gray);">รายการแจ้งเตือนผลการอนุมัติและประกาศบริษัท</span>
             <button onclick="markAllEmpNotifAsRead()" style="background:none; border:none; color:var(--primary); font-weight:600; cursor:pointer; text-decoration:underline;">✓ ทำเป็นอ่านแล้วทั้งหมด</button>
@@ -1778,8 +1790,11 @@
 
             if (saveRes && saveRes.status === 'success') {
                 alert("🔔 เปิดใช้งานการแจ้งเตือนบนแถบมือถือ/คอมพิวเตอร์ เรียบร้อยแล้ว!");
-                let btn = document.getElementById('btnPushNotifHeader');
-                if (btn) btn.innerText = "🔔 เปิดแจ้งเตือนแล้ว";
+                let btn = document.getElementById('btnPushNotifModal');
+                if (btn) {
+                    btn.style.background = '#10b981';
+                    btn.innerText = '✅ เปิดแจ้งเตือนแล้ว';
+                }
             }
         } catch (err) {
             console.error("Web Push Init Error:", err);
@@ -4797,6 +4812,24 @@
     function openEmpNotifModal() {
         refreshInitData();
         renderEmpNotifList();
+        
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.pushManager.getSubscription().then(sub => {
+                    let btn = document.getElementById('btnPushNotifModal');
+                    if (btn) {
+                        if (sub) {
+                            btn.style.background = '#10b981';
+                            btn.innerText = '✅ เปิดแจ้งเตือนแล้ว';
+                        } else {
+                            btn.style.background = '#f59e0b';
+                            btn.innerText = '🔔 เปิดใช้งาน';
+                        }
+                    }
+                });
+            });
+        }
+
         let modal = document.getElementById('empNotifModal');
         if (modal) modal.classList.remove('hidden');
     }
