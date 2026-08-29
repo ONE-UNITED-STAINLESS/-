@@ -2497,6 +2497,70 @@
 
 
 
+    const selectedFilesMap = {
+        time: [],
+        leave: [],
+        other: []
+    };
+
+    function handleMultipleFileSelect(type) {
+        const input = document.getElementById(`${type}File`);
+        if (!input || !input.files) return;
+
+        for (let i = 0; i < input.files.length; i++) {
+            selectedFilesMap[type].push(input.files[i]);
+        }
+
+        input.value = '';
+        renderSelectedFilePreviews(type);
+    }
+
+    function renderSelectedFilePreviews(type) {
+        const previewContainer = document.getElementById(`${type}FilePreview`);
+        if (!previewContainer) return;
+        previewContainer.innerHTML = '';
+
+        const files = selectedFilesMap[type];
+        if (files.length === 0) return;
+
+        files.forEach((file, idx) => {
+            const card = document.createElement('div');
+            card.style.cssText = 'position:relative; width:60px; height:60px; border-radius:8px; border:1px solid #cbd5e1; overflow:hidden; background:#f8fafc; display:flex; align-items:center; justify-content:center; flex-shrink:0;';
+
+            if (file.type && file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+                card.appendChild(img);
+            } else {
+                card.innerHTML = `<span style="font-size:9px; color:#475569; text-align:center; padding:2px; word-break:break-all;">📄 ${file.name.substring(0, 8)}</span>`;
+            }
+
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '✕';
+            removeBtn.style.cssText = 'position:absolute; top:2px; right:2px; background:rgba(239,68,68,0.9); color:white; border:none; border-radius:50%; width:16px; height:16px; font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,0.3);';
+            removeBtn.onclick = (e) => {
+                e.preventDefault();
+                removeSelectedFile(type, idx);
+            };
+
+            card.appendChild(removeBtn);
+            previewContainer.appendChild(card);
+        });
+    }
+
+    function removeSelectedFile(type, index) {
+        selectedFilesMap[type].splice(index, 1);
+        renderSelectedFilePreviews(type);
+    }
+
+    function clearSelectedFiles(type) {
+        selectedFilesMap[type] = [];
+        renderSelectedFilePreviews(type);
+        const input = document.getElementById(`${type}File`);
+        if (input) input.value = '';
+    }
+
     function submitRequest(type) {
         document.getElementById('reqMsg').innerText = "กำลังส่ง..."; 
         let fileInput = type === 'time' ? document.getElementById('timeFile') : (type === 'leave' ? document.getElementById('leaveFile') : document.getElementById('otherFile'));
@@ -2532,16 +2596,37 @@
             return;
         }
         
-        if(fileInput && fileInput.files && fileInput.files.length > 0) { 
-            let reader = new FileReader(); 
-            reader.onload = function(e) { params.imageBase64 = e.target.result.split(',')[1]; sendReqData(params); }; 
-            reader.readAsDataURL(fileInput.files[0]); 
+        const filesToUpload = (selectedFilesMap[type] && selectedFilesMap[type].length > 0) ? selectedFilesMap[type] : (fileInput && fileInput.files ? Array.from(fileInput.files) : []);
+        
+        if (filesToUpload.length > 0) {
+            let promises = filesToUpload.map(file => {
+                return new Promise((resolve) => {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve(e.target.result.split(',')[1]);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(promises).then(base64Array => {
+                params.imagesBase64 = JSON.stringify(base64Array);
+                sendReqData(params, type);
+            });
         } else { 
-            sendReqData(params); 
+            sendReqData(params, type); 
         }
     }
     
-    function sendReqData(params) { fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; loadMyRequests(); refreshInitData(); setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); }); }
+    function sendReqData(params, type) { 
+        fetch(scriptURL, { method: 'POST', body: new URLSearchParams(params) }).then(r=>r.json()).then(d => { 
+            document.getElementById('reqMsg').innerText = "✅ ส่งคำขอสำเร็จ!"; 
+            if (type) clearSelectedFiles(type);
+            loadMyRequests(); 
+            refreshInitData(); 
+            setTimeout(() => { document.getElementById('reqMsg').innerText = ""; }, 4000); 
+        }); 
+    }
 
     function loadMyRequests() {
         let tb = document.getElementById('tb-my-reqs'); tb.innerHTML = '<tr><td colspan="4" class="text-center" style="color:var(--gray);">กำลังโหลดสถานะ...</td></tr>';
