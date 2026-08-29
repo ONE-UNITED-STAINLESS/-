@@ -534,6 +534,7 @@
             <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                 <div id="headerClockEmp" class="header-clock" style="margin-right: 4px;">00:00:00</div>
                 <button id="btnSwitchToHrMode" class="btn-primary hidden" onclick="switchToHrView()" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #4361ee, #3b82f6); border: none; box-shadow: 0 2px 4px rgba(67,97,238,0.3);">📊 หน้าผู้ดูแล (HR/Supervisor)</button>
+                <button class="btn-outline" id="btnPushNotifHeader" onclick="initWebPushSubscription()" style="padding: 6px 12px; font-size: 13px; border-color: #f59e0b; color: #b45309; background: #fffbeb; font-weight:600;" title="เปิดรับการแจ้งเตือนบนแถบมือถือและคอมพิวเตอร์">🔔 รับแจ้งเตือนบนแถบมือถือ/คอม</button>
                 <button class="btn-outline" onclick="openEmpNotifModal()" style="padding: 6px 12px; font-size: 13px; position: relative; display: inline-flex; align-items: center; gap: 4px; border-color: #6366f1; color: #4338ca; background: #eef2ff;">
                     🔔 แจ้งเตือน <span id="empNotifBadge" class="hidden" style="background:#ef4444; color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:2px; line-height:1.2; box-shadow:0 2px 4px rgba(239,68,68,0.4);">0</span>
                 </button>
@@ -1714,10 +1715,76 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js?v=3').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=4').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW reg error:', err));
         });
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    async function initWebPushSubscription() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            alert("⚠️ อุปกรณ์หรือเบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน Web Push (หากใช้ iPhone กรุณากด 'ติดตั้งแอป' ลงหน้าจอโฮมก่อนครับ)");
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                alert("⚠️ ท่านยังไม่ได้อนุญาตสิทธิ์การแจ้งเตือน หากต้องการเปิดใช้งาน กรุณาอนุญาตสิทธิ์แจ้งเตือนในเบราว์เซอร์");
+                return;
+            }
+
+            const keyRes = await fetch(scriptURL, { method: 'POST', body: new URLSearchParams({ action: 'get_vapid_public_key' }) }).then(r => r.json());
+            if (!keyRes || !keyRes.publicKey) {
+                alert("❌ ไม่สามารถดึงคีย์การแจ้งเตือนจากเซิร์ฟเวอร์ได้");
+                return;
+            }
+
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (!sub) {
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(keyRes.publicKey)
+                });
+            }
+
+            const subJson = sub.toJSON();
+            const endpoint = subJson.endpoint;
+            const p256dh = subJson.keys ? subJson.keys.p256dh : '';
+            const auth = subJson.keys ? subJson.keys.auth : '';
+
+            const saveRes = await fetch(scriptURL, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    action: 'save_push_subscription',
+                    username: currentUser,
+                    endpoint: endpoint,
+                    p256dh: p256dh,
+                    auth: auth
+                })
+            }).then(r => r.json());
+
+            if (saveRes && saveRes.status === 'success') {
+                alert("🔔 เปิดใช้งานการแจ้งเตือนบนแถบมือถือ/คอมพิวเตอร์ เรียบร้อยแล้ว!");
+                let btn = document.getElementById('btnPushNotifHeader');
+                if (btn) btn.innerText = "🔔 เปิดแจ้งเตือนแล้ว";
+            }
+        } catch (err) {
+            console.error("Web Push Init Error:", err);
+            alert("❌ เกิดข้อผิดพลาดในการลงทะเบียนการแจ้งเตือน: " + err.message);
+        }
     }
 
     function triggerPwaInstall() {

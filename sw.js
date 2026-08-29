@@ -1,4 +1,4 @@
-const CACHE_NAME = 'checkin-pwa-v3';
+const CACHE_NAME = 'checkin-pwa-v4';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -31,5 +31,49 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(() => caches.match(event.request))
+  );
+});
+
+// ======================================================
+// 🔔 Web Push Notification Event Handlers
+// ======================================================
+self.addEventListener('push', event => {
+  let data = { title: 'ONE UNITED Check-in', body: 'มีการแจ้งเตือนใหม่ในระบบ', url: './' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body || 'มีการแจ้งเตือนใหม่ในระบบ',
+    icon: './one123.png',
+    badge: './one123.png',
+    vibrate: [100, 50, 100],
+    data: { url: data.url || './' }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'ONE UNITED Check-in', options)
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = event.notification.data ? event.notification.data.url : './';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
