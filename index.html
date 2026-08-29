@@ -3348,24 +3348,36 @@
         badgeEl.innerText = status === 'Approved' ? 'อนุมัติแล้ว' : (status === 'Rejected' ? 'ไม่อนุมัติ' : 'รอตรวจสอบ');
 
         let imgContainer = document.getElementById('reqModalImageContainer');
-        let imgPreview = document.getElementById('reqModalImgPreview');
-        if (isValidImageUrl(imgUrl)) {
-            let fullUrl = getFullImageUrl(imgUrl);
-            let driveId = getDriveFileId(fullUrl);
-            if (driveId) {
-                imgPreview.src = `https://lh3.googleusercontent.com/d/${driveId}`;
-            } else {
-                fetch(fullUrl, {
-                    headers: { 'ngrok-skip-browser-warning': 'true', 'bypass-tunnel-reminder': 'true' }
-                })
-                .then(res => res.ok ? res.blob() : Promise.reject(res.status))
-                .then(blob => { imgPreview.src = URL.createObjectURL(blob); })
-                .catch(() => { imgPreview.src = fullUrl; });
-            }
-            imgPreview.onclick = function() { openImageModal(imgUrl); };
+        let rawUrls = imgUrl ? imgUrl.split(',').map(u => u.trim()).filter(u => u && u !== '-') : [];
+        let validUrls = rawUrls.filter(u => isValidImageUrl(u));
+
+        if (validUrls.length > 0) {
+            imgContainer.innerHTML = '';
+            imgContainer.style.cssText = 'display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; justify-content:center; align-items:center;';
+
+            validUrls.forEach((singleUrl) => {
+                let fullUrl = getFullImageUrl(singleUrl);
+                let driveId = getDriveFileId(fullUrl);
+                let imgEl = document.createElement('img');
+                imgEl.style.cssText = 'width:90px; height:90px; object-fit:cover; border-radius:10px; border:2px solid #cbd5e1; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:transform 0.2s;';
+                
+                if (driveId) {
+                    imgEl.src = `https://lh3.googleusercontent.com/d/${driveId}`;
+                } else {
+                    fetch(fullUrl, {
+                        headers: { 'ngrok-skip-browser-warning': 'true', 'bypass-tunnel-reminder': 'true' }
+                    })
+                    .then(res => res.ok ? res.blob() : Promise.reject(res.status))
+                    .then(blob => { imgEl.src = URL.createObjectURL(blob); })
+                    .catch(() => { imgEl.src = fullUrl; });
+                }
+
+                imgEl.onclick = function() { openImageModal(singleUrl); };
+                imgContainer.appendChild(imgEl);
+            });
             imgContainer.classList.remove('hidden');
         } else {
-            imgPreview.src = '';
+            imgContainer.innerHTML = '';
             imgContainer.classList.add('hidden');
         }
 
