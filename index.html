@@ -1836,7 +1836,15 @@
         if (isIOS) {
             let modal = document.getElementById('iosInstallModal');
             if (modal) modal.classList.remove('hidden');
-        } else if (deferredPrompt) {
+        } else {
+            let modal = document.getElementById('appInstallModal');
+            if (modal) modal.classList.remove('hidden');
+            else triggerDirectPwaInstall();
+        }
+    }
+
+    function triggerDirectPwaInstall() {
+        if (deferredPrompt) {
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
@@ -1845,12 +1853,17 @@
                 deferredPrompt = null;
             });
         } else {
-            alert("📲 วิธีติดตั้งลงหน้าจอมือถือ (Android):\n1. กดปุ่มเมนู 3 จุด (⋮) มุมขวาบนของเบราว์เซอร์ Chrome\n2. เลือก 'เพิ่มลงในหน้าจอหลัก' (Add to Home screen)\n3. กด 'เพิ่ม' ไอคอนแอปจะไปอยู่ที่หน้าจอมือถือทันที!");
+            alert("📲 วิธีติดตั้งไอคอนแอปบนหน้าจอมือถือ Android:\n1. กดเมนู 3 จุด (⋮) มุมขวาบนของ Chrome\n2. เลือก 'เพิ่มลงในหน้าจอหลัก' (Add to Home screen)\n3. กด 'เพิ่ม' ไอคอนแอปจะไปอยู่ที่หน้าจอมือถือทันที!");
         }
     }
 
     function closeIosInstallModal() {
         let modal = document.getElementById('iosInstallModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function closeAppInstallModal() {
+        let modal = document.getElementById('appInstallModal');
         if (modal) modal.classList.add('hidden');
     }
 
