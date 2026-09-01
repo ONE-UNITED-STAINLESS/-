@@ -910,7 +910,10 @@
             <hr style="margin:20px 0; border:1px solid #e5e7eb;">
             <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px;">
                 <h3 style="margin:0; color:var(--dark); font-size: 16px;">📋 รายละเอียดการลงเวลา</h3>
-                <input type="text" id="hrSearchLogInput" placeholder="🔍 พิมพ์ค้นหา ชื่อ, วันที่, เวลา..." onkeyup="filterHrLogList()" style="width: 100%; max-width: 300px; margin: 0; padding: 8px 12px; font-size: 13px;">
+                <div style="display: flex; gap: 6px; align-items: center; width: 100%; max-width: 380px;">
+                    <input type="text" id="hrSearchLogInput" placeholder="🔍 พิมพ์ค้นหา ชื่อ, วันที่, เวลา..." onkeyup="filterHrLogList()" style="flex: 1; margin: 0; padding: 8px 12px; font-size: 13px;">
+                    <button class="btn-grey" onclick="filterHrLogByDate('')" style="padding: 8px 12px; font-size: 12px; white-space: nowrap; width: auto; font-weight: 600;" title="ล้างตัวกรองและดูประวัติทั้งหมด">🔄 แสดงทั้งหมด</button>
+                </div>
             </div>
             
             <div class="table-responsive">
