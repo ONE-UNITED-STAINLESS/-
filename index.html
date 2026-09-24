@@ -2632,6 +2632,82 @@
         if (input) input.value = '';
     }
 
+    function toggleLeaveDurationMode(mode) {
+        const fullSec = document.getElementById('leaveFullDaySection');
+        const hourlySec = document.getElementById('leaveHourlySection');
+        const labelFull = document.getElementById('labelLeaveModeFull');
+        const labelHourly = document.getElementById('labelLeaveModeHourly');
+        
+        if (mode === 'hourly') {
+            if (fullSec) fullSec.classList.add('hidden');
+            if (hourlySec) hourlySec.classList.remove('hidden');
+            if (labelHourly) {
+                labelHourly.style.background = '#e0f2fe';
+                labelHourly.style.color = '#0369a1';
+            }
+            if (labelFull) {
+                labelFull.style.background = 'transparent';
+                labelFull.style.color = '#64748b';
+            }
+            const todayStr = new Date().toISOString().split('T')[0];
+            const hDateInput = document.getElementById('leaveHourlyDate');
+            if (hDateInput && !hDateInput.value) {
+                hDateInput.value = todayStr;
+            }
+            calculateHourlyLeaveDuration();
+        } else {
+            if (fullSec) fullSec.classList.remove('hidden');
+            if (hourlySec) hourlySec.classList.add('hidden');
+            if (labelFull) {
+                labelFull.style.background = '#e0f2fe';
+                labelFull.style.color = '#0369a1';
+            }
+            if (labelHourly) {
+                labelHourly.style.background = 'transparent';
+                labelHourly.style.color = '#64748b';
+            }
+        }
+    }
+
+    function calculateHourlyLeaveDuration() {
+        const start = document.getElementById('leaveStartTime')?.value;
+        const end = document.getElementById('leaveEndTime')?.value;
+        const summaryBox = document.getElementById('leaveHourlySummary');
+        const summaryTxt = document.getElementById('leaveHourlySummaryTxt');
+        
+        if (!start || !end) {
+            if (summaryBox) summaryBox.style.display = 'none';
+            return 0;
+        }
+        
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+        
+        if (diffMinutes <= 0) {
+            if (summaryBox) {
+                summaryBox.style.display = 'flex';
+                summaryBox.style.background = '#fee2e2';
+                summaryBox.style.borderColor = '#fca5a5';
+                summaryBox.style.color = '#b91c1c';
+            }
+            if (summaryTxt) summaryTxt.innerText = 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น';
+            return 0;
+        }
+        
+        let hours = (diffMinutes / 60);
+        let hoursStr = Number.isInteger(hours) ? hours.toString() : hours.toFixed(1);
+        
+        if (summaryBox) {
+            summaryBox.style.display = 'flex';
+            summaryBox.style.background = '#e0f2fe';
+            summaryBox.style.borderColor = '#bae6fd';
+            summaryBox.style.color = '#0369a1';
+        }
+        if (summaryTxt) summaryTxt.innerText = `รวมระยะเวลาลา: ${hoursStr} ชั่วโมง (${start} - ${end} น.)`;
+        return hours;
+    }
+
     function submitRequest(type) {
         document.getElementById('reqMsg').innerText = "กำลังส่ง..."; 
         let fileInput = type === 'time' ? document.getElementById('timeFile') : (type === 'leave' ? document.getElementById('leaveFile') : document.getElementById('otherFile'));
@@ -2648,9 +2724,50 @@
             params.target_approver = document.getElementById('timeTargetApprover') ? document.getElementById('timeTargetApprover').value : 'HR';
         } 
         else if (type === 'leave') { 
+            const mode = document.querySelector('input[name="leaveDurationMode"]:checked')?.value || 'full';
+            params.leave_format = mode;
             params.leave_type = document.getElementById('leaveType').value; 
-            params.start_date = document.getElementById('leaveStart').value; 
-            params.end_date = document.getElementById('leaveEnd').value; 
+
+            if (mode === 'hourly') {
+                const hDate = document.getElementById('leaveHourlyDate') ? document.getElementById('leaveHourlyDate').value : '';
+                const sTime = document.getElementById('leaveStartTime') ? document.getElementById('leaveStartTime').value : '';
+                const eTime = document.getElementById('leaveEndTime') ? document.getElementById('leaveEndTime').value : '';
+                
+                if (!hDate) {
+                    document.getElementById('reqMsg').innerText = "❌ กรุณาเลือกวันที่ลา";
+                    return;
+                }
+                if (!sTime || !eTime) {
+                    document.getElementById('reqMsg').innerText = "❌ กรุณาระบุเวลาเริ่มต้นและเวลาสิ้นสุด";
+                    return;
+                }
+
+                const [sh, sm] = sTime.split(':').map(Number);
+                const [eh, em] = eTime.split(':').map(Number);
+                const diffMin = (eh * 60 + em) - (sh * 60 + sm);
+                if (diffMin <= 0) {
+                    document.getElementById('reqMsg').innerText = "❌ เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น";
+                    return;
+                }
+
+                const calcHours = Number.isInteger(diffMin / 60) ? (diffMin / 60).toString() : (diffMin / 60).toFixed(1);
+                params.start_date = hDate;
+                params.end_date = hDate;
+                params.start_time = sTime;
+                params.end_time = eTime;
+                params.hours = calcHours;
+            } else {
+                params.start_date = document.getElementById('leaveStart').value; 
+                params.end_date = document.getElementById('leaveEnd').value; 
+                params.start_time = '';
+                params.end_time = '';
+                params.hours = '';
+                if (!params.start_date || !params.end_date) {
+                    document.getElementById('reqMsg').innerText = "❌ กรุณาเลือกวันที่เริ่มต้นและสิ้นสุด";
+                    return;
+                }
+            }
+
             params.reason = document.getElementById('leaveReason').value; 
             params.target_approver = document.getElementById('leaveTargetApprover') ? document.getElementById('leaveTargetApprover').value : 'HR';
         }
