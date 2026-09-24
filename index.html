@@ -5432,12 +5432,15 @@
         });
 
         leaveReqs.forEach(r => {
+            let isHourly = (r.start_time && r.end_time);
+            let title = isHourly ? ('⏱️ ขอลาหยุด (' + r.leave_type + ' ' + (r.hours || '') + ' ชม.)') : ('🗓️ ขอลาหยุด (' + r.leave_type + ' ' + r.days + ' วัน)');
+            let detail = isHourly ? (`วันที่: ${r.start_date} เวลา ${r.start_time} - ${r.end_time} (${r.hours || ''} ชม.) | เหตุผล: ${r.reason}`) : (`ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`);
             combined.push({
                 id: r.id,
                 sheet: 'LeaveRequests',
-                typeTitle: '🗓️ ขอลาหยุด (' + r.leave_type + ' ' + r.days + ' วัน)',
+                typeTitle: title,
                 username: r.username,
-                detail: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason}`,
+                detail: detail,
                 date: r.date,
                 status: r.hr_status,
                 file_url: r.file_url
