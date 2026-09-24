@@ -3411,7 +3411,15 @@
                 empName = i[2];
                 reqDate = i[1] ? i[1].split(' ')[0] : '-';
                 reqType = i[3];
-                targetDetail = currentReqFilter === 'time' ? i[4] : `${i[4]} ถึง ${i[5]}`;
+                let isHourly = (i[14] && i[15]);
+                if (currentReqFilter === 'time') {
+                    targetDetail = i[4];
+                } else if (isHourly) {
+                    targetDetail = `📅 ${i[4]} (⏱️ ${i[14]}-${i[15]} รวม ${i[16]||''} ชม.)`;
+                    reqType += ' (รายชั่วโมง)';
+                } else {
+                    targetDetail = `${i[4]} ถึง ${i[5]}`;
+                }
             } else {
                 reqId = i.id;
                 status = i.status || i.hr_status;
@@ -3467,7 +3475,15 @@
             empName = item[2];
             reqDate = item[1];
             reqType = item[3];
-            targetDetail = sheet === 'TimeRequests' ? item[4] : `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
+            let isHourly = (item[14] && item[15]);
+            if (sheet === 'TimeRequests') {
+                targetDetail = item[4];
+            } else if (isHourly) {
+                targetDetail = `📅 ${item[4]} (⏱️ ${item[14]} - ${item[15]} รวม ${item[16]||''} ชม.)`;
+                reqType += ' (รายชั่วโมง)';
+            } else {
+                targetDetail = `${item[4]} ถึง ${item[5]} (${item[6]} วัน)`;
+            }
             reason = sheet === 'TimeRequests' ? (item[5] || '-') : (item[7] || '-');
             imgUrl = sheet === 'TimeRequests' ? item[6] : item[8];
             targetApprover = sheet === 'TimeRequests' ? (item[10] || 'HR') : (item[12] || 'HR');
