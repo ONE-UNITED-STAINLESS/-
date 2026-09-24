@@ -695,15 +695,55 @@
             
             <div id="formLeave" class="edit-box hidden" style="background:#f3f4f6; border-color:#e5e7eb;">
                 <h3 style="color:#374151; margin-top:0; font-size: 16px;">🗓️ ขอลาหยุด</h3>
-                <select id="leaveType">
+
+                <!-- เลือกระหว่าง ลาเต็มวัน กับ ลารายชั่วโมง -->
+                <div style="display:flex; gap:8px; margin-bottom:12px; background:white; padding:5px; border-radius:10px; border:1px solid #cbd5e1;">
+                    <label id="labelLeaveModeFull" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer; padding:8px 6px; border-radius:8px; margin:0; background:#e0f2fe; color:#0369a1; transition:all 0.2s;">
+                        <input type="radio" name="leaveDurationMode" value="full" checked onchange="toggleLeaveDurationMode('full')" style="width:auto; margin:0; accent-color:#0284c7;">
+                        <span>📅 เต็มวัน / หลายวัน</span>
+                    </label>
+                    <label id="labelLeaveModeHourly" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer; padding:8px 6px; border-radius:8px; margin:0; background:transparent; color:#64748b; transition:all 0.2s;">
+                        <input type="radio" name="leaveDurationMode" value="hourly" onchange="toggleLeaveDurationMode('hourly')" style="width:auto; margin:0; accent-color:#0284c7;">
+                        <span>⏱️ ลารายชั่วโมง</span>
+                    </label>
+                </div>
+
+                <label style="font-size:12px; font-weight:600; color:#374151;">ประเภทการลา:</label>
+                <select id="leaveType" style="margin-top:2px;">
                     <option value="ลาป่วย">ลาป่วย</option>
                     <option value="ลากิจ">ลากิจ</option>
                     <option value="ลาพักร้อน">ลาพักร้อน</option>
                 </select>
-                <div class="flex-gap">
-                    <div style="width:100%;"><label style="font-size:12px;">เริ่มวันที่:</label><input type="date" id="leaveStart"></div>
-                    <div style="width:100%;"><label style="font-size:12px;">ถึงวันที่:</label><input type="date" id="leaveEnd"></div>
+
+                <!-- ส่วนเลือกวันแบบเต็มวัน / หลายวัน -->
+                <div id="leaveFullDaySection">
+                    <div class="flex-gap">
+                        <div style="width:100%;"><label style="font-size:12px;">เริ่มวันที่:</label><input type="date" id="leaveStart"></div>
+                        <div style="width:100%;"><label style="font-size:12px;">ถึงวันที่:</label><input type="date" id="leaveEnd"></div>
+                    </div>
                 </div>
+
+                <!-- ส่วนเลือกแบบลารายชั่วโมง -->
+                <div id="leaveHourlySection" class="hidden">
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px;">วันที่ลา:</label>
+                        <input type="date" id="leaveHourlyDate">
+                    </div>
+                    <div class="flex-gap">
+                        <div style="width:100%;">
+                            <label style="font-size:12px;">ตั้งแต่เวลา:</label>
+                            <input type="time" id="leaveStartTime" onchange="calculateHourlyLeaveDuration()">
+                        </div>
+                        <div style="width:100%;">
+                            <label style="font-size:12px;">ถึงเวลา:</label>
+                            <input type="time" id="leaveEndTime" onchange="calculateHourlyLeaveDuration()">
+                        </div>
+                    </div>
+                    <div id="leaveHourlySummary" style="font-size:12px; color:#0369a1; background:#e0f2fe; border:1px solid #bae6fd; padding:7px 12px; border-radius:8px; margin-top:6px; margin-bottom:8px; display:none; align-items:center; gap:6px; font-weight:600;">
+                        ⏱️ <span id="leaveHourlySummaryTxt">รวม 0 ชั่วโมง</span>
+                    </div>
+                </div>
+
                 <div style="margin-bottom: 8px;">
                     <label style="font-size:12px; font-weight:600; color:#374151;">👤 ส่งถึงผู้มีอำนาจอนุมัติคำขอ:</label>
                     <select id="leaveTargetApprover" style="margin-top:2px; background:white; font-size:13px;"></select>
