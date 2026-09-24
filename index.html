@@ -5084,13 +5084,17 @@
                 let icon = r.hr_status === 'Approved' ? '✅' : (r.hr_status === 'Rejected' ? '❌' : '⏳');
                 let appName = r.approved_by || r.target_approver || 'HR';
                 let appStr = r.hr_status === 'Approved' ? ` (โดย: ${appName})` : (r.hr_status === 'Rejected' ? ` (โดย: ${appName})` : ` (ส่งถึง: ${appName})`);
+                let isHourly = (r.start_time && r.end_time);
+                let timeStr = isHourly ? `วันที่: ${r.start_date} เวลา ${r.start_time} - ${r.end_time} (${r.hours || ''} ชม.)` : `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} (${r.days} วัน)`;
+                let titleStr = isHourly ? `คำขอลาหยุด (${r.leave_type} ${r.hours || ''} ชม.): ${statusStr}${appStr}` : `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}${appStr}`;
+
                 list.push({
                     id: 'leave_' + r.id + '_' + r.hr_status,
                     rawId: r.id,
                     type: 'leave',
                     icon: icon,
-                    title: `คำขอลาหยุด (${r.leave_type} ${r.days} วัน): ${statusStr}${appStr}`,
-                    content: `ช่วงวันที่: ${r.start_date} ถึง ${r.end_date} | เหตุผล: ${r.reason} | ผู้อนุมัติ/ผู้พิจารณา: ${appName}`,
+                    title: titleStr,
+                    content: `${timeStr} | เหตุผล: ${r.reason} | ผู้อนุมัติ/ผู้พิจารณา: ${appName}`,
                     date: r.date,
                     status: r.hr_status,
                     image_url: r.file_url,
