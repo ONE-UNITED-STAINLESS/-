@@ -1,4 +1,4 @@
-const CACHE_NAME = 'checkin-pwa-v7';
+const CACHE_NAME = 'checkin-pwa-v8';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
